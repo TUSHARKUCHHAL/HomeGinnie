@@ -42,11 +42,11 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Home</a>
+          <a href="/" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Home</a>
           <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Book a Pro</a>
           <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Buy Smart</a>
           <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Services</a>
-          <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">About</a>
+          <a href="/About" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">About</a>
         </div>
 
         {/* Action Buttons */}
@@ -83,11 +83,11 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden mt-4 pb-4 border-t border-gray-200 animate-fade-in-down">
           <div className="flex flex-col space-y-4 pt-4">
-            <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Home</a>
+            <a href="/" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Home</a>
             <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Book a Pro</a>
             <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Buy Smart</a>
             <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">Services</a>
-            <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">About</a>
+            <a href="/About" className="font-medium text-slate-700 hover:text-slate-900 transition-colors">About</a>
             <div className="flex flex-col space-y-2 pt-2">
               <button className="w-full px-4 py-2 font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-50 transition-colors">
                 Login
