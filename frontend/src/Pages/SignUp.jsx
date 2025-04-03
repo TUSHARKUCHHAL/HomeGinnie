@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser } from 'react-icons/fa';
 
 // Create different animations for each blob
 const animationStyles = `
@@ -73,11 +73,14 @@ const animationStyles = `
 }
 `;
 
-const LoginPage = () => {
+const SignUpPage = () => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = (e) => {
@@ -86,9 +89,9 @@ const LoginPage = () => {
     
     // Simulate API call
     setTimeout(() => {
-      console.log('Login attempt with:', { email, password, rememberMe });
+      console.log('Sign up attempt with:', { fullName, email, password, agreeTerms });
       setIsLoading(false);
-      // Add your actual authentication logic here
+      // Add your actual registration logic here
     }, 1000);
   };
 
@@ -105,16 +108,39 @@ const LoginPage = () => {
       </div>
       
       <div className="w-full max-w-md z-10">
-        {/* Login Card containing all elements */}
+        {/* Sign Up Card containing all elements */}
         <div className="bg-white/95 backdrop-blur-sm mt-28 mb-12 rounded-xl shadow-md border border-slate-200 overflow-hidden">
           {/* Welcome text inside the card */}
           <div className="px-8 pt-8 text-center">
-            <h1 className="text-2xl font-bold text-slate-800">Welcome Back</h1>
-            <p className="mt-2 text-sm text-slate-600">Sign in to your HomeGinnie account</p>
+            <h1 className="text-2xl font-bold text-slate-800">Create Your Account</h1>
+            <p className="mt-2 text-sm text-slate-600">Join HomeGinnie today</p>
           </div>
           
           <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Full Name Field */}
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaUser className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </div>
+
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
@@ -151,7 +177,7 @@ const LoginPage = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -168,26 +194,60 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
+              {/* Confirm Password Field */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaLock className="h-5 w-5 text-slate-400" />
+                  </div>
                   <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    placeholder="••••••••"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-600">
-                    Remember me
-                  </label>
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-500"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+                  </button>
                 </div>
+              </div>
 
-                <div className="text-sm">
-                  <a href="#" className="font-medium text-slate-600 hover:text-slate-800">
-                    Forgot password?
-                  </a>
+              {/* Terms & Conditions Checkbox */}
+              <div className="flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                    required
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor="terms" className="text-slate-600">
+                    I agree to the{' '}
+                    <a href="#" className="font-medium text-slate-800 hover:text-slate-700">
+                      Terms of Service
+                    </a>{' '}
+                    and{' '}
+                    <a href="#" className="font-medium text-slate-800 hover:text-slate-700">
+                      Privacy Policy
+                    </a>
+                  </label>
                 </div>
               </div>
 
@@ -204,10 +264,10 @@ const LoginPage = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Signing in...
+                      Creating account...
                     </>
                   ) : (
-                    "Sign in"
+                    "Create Account"
                   )}
                 </button>
               </div>
@@ -220,12 +280,12 @@ const LoginPage = () => {
                   <div className="w-full border-t border-slate-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-slate-500">Or Login with</span>
+                  <span className="bg-white px-2 text-slate-500">Or Sign Up with</span>
                 </div>
               </div>
             </div>
 
-            {/* Social Login - Simplified */}
+            {/* Social Sign Up */}
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -250,11 +310,11 @@ const LoginPage = () => {
               </button>
             </div>
             
-            {/* Sign Up Link - Inside the card */}
+            {/* Login Link */}
             <p className="mt-6 text-center text-sm text-slate-600">
-              Don't have an account?{' '}
-              <a href="/SignUp" className="font-medium text-slate-800 hover:text-slate-700">
-                Create an account
+              Already have an account?{' '}
+              <a href="/Login" className="font-medium text-slate-800 hover:text-slate-700">
+                Sign in
               </a>
             </p>
           </div>
@@ -264,4 +324,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SignUpPage;

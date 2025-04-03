@@ -1,4 +1,6 @@
 // src/components/Footer.jsx
+import Logo from '../assets/HomeGinnie_w.png'; // Adjust the path to your logo image
+
 const Footer = () => {
     return (
         <footer className="bg-slate-900 text-white pt-16 pb-8">
@@ -7,11 +9,7 @@ const Footer = () => {
             {/* Logo and About */}
             <div className="lg:col-span-2">
               <div className="flex items-center mb-4">
-                <div className="mr-2 w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                  </svg>
-                </div>
+                <img src={Logo} alt="Logo" className="h-12 w-12 mr-3 -mt-2" />
                 <span className="text-xl font-bold">HomeGinnie</span>
               </div>
               <p className="text-gray-400 mb-6">

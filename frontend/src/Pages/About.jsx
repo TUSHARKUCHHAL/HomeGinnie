@@ -115,18 +115,20 @@ const About = () => {
               variants={fadeIn}
               className="flex flex-col items-center mb-12"
             >
+              
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 text-center mb-6">
+                About Our Mission
+              </h1>
+
+              <p className="text-xl text-slate-600 text-center max-w-3xl mb-8">
+                Connecting homes with trusted professionals and smart shopping solutions since 2020.
+              </p>
+
               <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-full px-6 py-2 mb-6 inline-flex items-center">
                 <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
                 <span className="text-sm text-slate-700 font-medium">Trusted by 500,000+ homeowners</span>
               </div>
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 text-center mb-6">
-                About <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-slate-500">Our Mission</span>
-              </h1>
-              
-              <p className="text-xl text-slate-600 text-center max-w-3xl mb-8">
-                Connecting homes with trusted professionals and smart shopping solutions since 2020.
-              </p>
               
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -134,14 +136,14 @@ const About = () => {
                 transition={{ delay: 0.3, duration: 0.5 }}
                 className="flex items-center justify-center space-x-4"
               >
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
+                {/* <div className="flex -space-x-2">
+                  {[1, 2, 3].map((i) => (
                     <div key={i} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden">
                       <img src={`/api/placeholder/40/40`} alt="Team member" className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>
-                <span className="text-slate-600">Join our growing team</span>
+                <span className="text-slate-600">Join our growing team</span> */}
               </motion.div>
             </motion.div>
 

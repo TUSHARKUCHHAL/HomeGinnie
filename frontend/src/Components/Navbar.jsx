@@ -25,6 +25,10 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const handleSignUpClick = () => {
+    navigate('/SignUp');
+  };
+
   return (
     <nav 
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -39,7 +43,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <div className="text-2xl font-bold text-slate-800 flex items-center space-x-3">
               
-                <img src={Logo} alt="Logo" className="h-12 w-12" />
+                <img src={Logo} alt="Logo" className="h-12 w-12 -mt-2" />
               
               <span className="tracking-tight">HomeGinnie</span>
             </div>
@@ -62,7 +66,9 @@ const Navbar = () => {
             >
               Login
             </button>
-            <button className="px-4 py-2 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors">
+            <button className="px-4 py-2 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
+            onClick={handleSignUpClick}
+            >
               Sign Up
             </button>
           </div>
@@ -103,7 +109,9 @@ const Navbar = () => {
                 >
                   Login
                 </button>
-                <button className="w-full px-4 py-2 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors">
+                <button className="w-full px-4 py-2 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors"
+                onClick={handleSignUpClick}
+                >
                   Sign Up
                 </button>
               </div>
