@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 // Importing components and pages
 import Home from './Pages/Home';
 import About from './Pages/About';
+import BookAPro from './Pages/BookAPro';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
 
@@ -11,7 +12,6 @@ import Navbar from './Components/Navbar';
 // Simple User Routes
 import LoginPage from './Pages/User/Login';
 import SignUpPage from './Pages/User/SignUp';
-import BookAPro from './Pages/User/BookAPro';
 import ForgotPassword from "./Pages/User/ResetPassword/ForgetPassword";
 import ResetPassword from "./Pages/User/ResetPassword/ResetPassword";
 
@@ -28,7 +28,7 @@ import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
 
 import ConfirmLogout from './Components/ConfirmLogout';
 import ProtectedRoute from './Components/ProtectedRoute';
-import BookAPro from './Pages/BookAPro';
+
 
 import './App.css';
 
