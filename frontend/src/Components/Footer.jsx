@@ -9,7 +9,7 @@ const Footer = () => {
             {/* Logo and About */}
             <div className="lg:col-span-2">
               <div className="flex items-center mb-4">
-                <img src={Logo} alt="Logo" className="h-12 w-12 mr-3 -mt-2" />
+                <img src={Logo} alt="Logo" className="h-12 w-12 mr-3 -mt-1" />
                 <span className="text-xl font-bold">HomeGinnie</span>
               </div>
               <p className="text-gray-400 mb-6">

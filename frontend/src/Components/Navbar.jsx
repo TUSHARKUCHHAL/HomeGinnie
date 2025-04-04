@@ -43,7 +43,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <div className="text-2xl font-bold text-slate-800 flex items-center space-x-3">
               
-                <img src={Logo} alt="Logo" className="h-12 w-12 -mt-2" />
+                <img src={Logo} alt="Logo" className="h-12 w-12 -mt-1" />
               
               <span className="tracking-tight">HomeGinnie</span>
             </div>

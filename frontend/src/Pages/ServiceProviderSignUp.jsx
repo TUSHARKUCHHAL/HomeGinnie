@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaToolbox, FaStar, FaMapMarkerAlt, FaRegIdCard } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaToolbox, FaStar, FaMapMarkerAlt, FaRegIdCard, FaExclamationCircle } from 'react-icons/fa';
 import { IoBusinessSharp } from 'react-icons/io5';
+import { href } from 'react-router-dom';
 
 // Animation styles - keep consistent with the existing theme
 const animationStyles = `
@@ -84,6 +85,18 @@ const animationStyles = `
   }
 }
 
+/* Heading scale up animation */
+@keyframes scaleUp {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .animate-blob-1 {
   animation: blob1 8s infinite ease-in-out;
 }
@@ -98,6 +111,10 @@ const animationStyles = `
 
 .animate-float {
   animation: float 3s infinite ease-in-out;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.5s ease-out forwards;
 }
 
 .hover\\:text-glow:hover {
@@ -168,6 +185,9 @@ const ServiceProviderSignUp = () => {
     agreeTerms: false,
   });
   
+  // Form validation errors
+  const [errors, setErrors] = useState({});
+  
   // UI state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -222,6 +242,18 @@ const ServiceProviderSignUp = () => {
     };
   }, []);
 
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  // Password validation regex (at least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char)
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  
+  // Phone number validation (simple version)
+  const phoneRegex = /^\+?[0-9]{10,15}$/;
+  
+  // Postal code validation
+  const postalCodeRegex = /^[0-9]{6}$/;
+
   // Handle form field changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -231,6 +263,14 @@ const ServiceProviderSignUp = () => {
       setFormData({ ...formData, [name]: checked });
     } else {
       setFormData({ ...formData, [name]: value });
+      
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors({
+          ...errors,
+          [name]: ''
+        });
+      }
     }
   };
   
@@ -247,35 +287,120 @@ const ServiceProviderSignUp = () => {
         selectedServices: [...formData.selectedServices, service]
       });
     }
+    
+    // Clear error when services are selected
+    if (errors.selectedServices) {
+      setErrors({
+        ...errors,
+        selectedServices: ''
+      });
+    }
+  };
+
+  // Validate current step fields
+  const validateStep = (step) => {
+    const newErrors = {};
+
+    switch(step) {
+      case 1:
+        // Validate personal information
+        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+        
+        if (!formData.email.trim()) {
+          newErrors.email = "Email is required";
+        } else if (!emailRegex.test(formData.email)) {
+          newErrors.email = "Please enter a valid email address";
+        }
+        
+        if (!formData.phoneNumber.trim()) {
+          newErrors.phoneNumber = "Phone number is required";
+        } else if (!phoneRegex.test(formData.phoneNumber)) {
+          newErrors.phoneNumber = "Please enter a valid phone number";
+        }
+        
+        if (!formData.password) {
+          newErrors.password = "Password is required";
+        } else if (!passwordRegex.test(formData.password)) {
+          newErrors.password = "Password must be at least 8 characters with uppercase, lowercase, number, and special character";
+        }
+        
+        if (!formData.confirmPassword) {
+          newErrors.confirmPassword = "Please confirm your password";
+        } else if (formData.password !== formData.confirmPassword) {
+          newErrors.confirmPassword = "Passwords do not match";
+        }
+        break;
+
+      case 2:
+        // Validate address information
+        if (!formData.street.trim()) newErrors.street = "Street address is required";
+        if (!formData.city.trim()) newErrors.city = "City is required";
+        if (!formData.state.trim()) newErrors.state = "State is required";
+        
+        if (!formData.postalCode.trim()) {
+          newErrors.postalCode = "Postal code is required";
+        } else if (!postalCodeRegex.test(formData.postalCode)) {
+          newErrors.postalCode = "Please enter a valid 6-digit postal code";
+        }
+        break;
+
+      case 3:
+        // Validate services & experience
+        if (formData.selectedServices.length === 0) {
+          newErrors.selectedServices = "Please select at least one service";
+        }
+        
+        if (formData.yearsOfExperience === '' || isNaN(formData.yearsOfExperience)) {
+          newErrors.yearsOfExperience = "Please enter your years of experience";
+        }
+        break;
+
+      case 4:
+        // Validate terms agreement
+        if (!formData.agreeTerms) {
+          newErrors.agreeTerms = "You must agree to the terms and conditions";
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // Move to next step
   const handleNextStep = () => {
-    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+      // Scroll to top when moving to next step
+      window.scrollTo(0, 0);
+    }
   };
 
   // Move to previous step
   const handlePrevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+    // Scroll to top when moving to previous step
+    window.scrollTo(0, 0);
   };
 
   // Handle final submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Provider sign up attempt with:', formData);
-      setIsLoading(false);
-      // Add your actual registration logic here
-    }, 1500);
-  };
-
-  // Switch to user signup
-  const handleUserSignUp = () => {
-    console.log('Switch to regular user signup');
-    // Redirect to user signup page
+    if (validateStep(currentStep)) {
+      setIsLoading(true);
+      
+      // Simulate API call
+      setTimeout(() => {
+        console.log('Provider sign up attempt with:', formData);
+        setIsLoading(false);
+        // Add your actual registration logic here
+      }, 1500);
+    }
   };
 
   // Render form based on current step
@@ -284,14 +409,14 @@ const ServiceProviderSignUp = () => {
       case 1:
         return (
           <div className="fade-in">
-            <h2 className="text-xl font-semibold text-slate-800 mb-5">Personal Information</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Personal Information</h2>
             
             {/* Name Fields - Side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {/* First Name */}
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-1">
-                  First Name
+                  First Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -304,16 +429,21 @@ const ServiceProviderSignUp = () => {
                     required
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    className={`pl-10 block w-full rounded-lg border ${errors.firstName ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="John"
                   />
+                  {errors.firstName && (
+                    <div className="flex items-center mt-1 text-red-500 text-xs">
+                      <FaExclamationCircle className="mr-1" /> {errors.firstName}
+                    </div>
+                  )}
                 </div>
               </div>
               
               {/* Last Name */}
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-1">
-                  Last Name
+                  Last Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -326,9 +456,14 @@ const ServiceProviderSignUp = () => {
                     required
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    className={`pl-10 block w-full rounded-lg border ${errors.lastName ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="Doe"
                   />
+                  {errors.lastName && (
+                    <div className="flex items-center mt-1 text-red-500 text-xs">
+                      <FaExclamationCircle className="mr-1" /> {errors.lastName}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -336,7 +471,7 @@ const ServiceProviderSignUp = () => {
             {/* Email Field */}
             <div className="mb-4">
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                Email address
+                Email address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -350,9 +485,14 @@ const ServiceProviderSignUp = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  className={`pl-10 block w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                   placeholder="you@example.com"
                 />
+                {errors.email && (
+                  <div className="flex items-center mt-1 text-red-500 text-xs">
+                    <FaExclamationCircle className="mr-1" /> {errors.email}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -361,7 +501,7 @@ const ServiceProviderSignUp = () => {
               {/* Primary Phone */}
               <div>
                 <label htmlFor="phoneNumber" className="block text-sm font-medium text-slate-700 mb-1">
-                  Phone Number
+                  Phone Number <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -374,9 +514,14 @@ const ServiceProviderSignUp = () => {
                     required
                     value={formData.phoneNumber}
                     onChange={handleChange}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    className={`pl-10 block w-full rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="+91 9876543210"
                   />
+                  {errors.phoneNumber && (
+                    <div className="flex items-center mt-1 text-red-500 text-xs">
+                      <FaExclamationCircle className="mr-1" /> {errors.phoneNumber}
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -405,7 +550,7 @@ const ServiceProviderSignUp = () => {
             {/* Password Field */}
             <div className="mb-4">
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                Password
+                Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -419,7 +564,7 @@ const ServiceProviderSignUp = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  className={`pl-10 block w-full rounded-lg border ${errors.password ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                   placeholder="••••••••"
                 />
                 <button
@@ -430,15 +575,21 @@ const ServiceProviderSignUp = () => {
                   {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
-                Must be at least 8 characters long with a mix of letters, numbers, and symbols
-              </p>
+              {errors.password ? (
+                <div className="flex items-center mt-1 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.password}
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500">
+                  Must be at least 8 characters long with a mix of uppercase, lowercase, numbers, and symbols
+                </p>
+              )}
             </div>
 
             {/* Confirm Password Field */}
             <div className="mb-4">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
-                Confirm Password
+                Confirm Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -452,7 +603,7 @@ const ServiceProviderSignUp = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  className={`pl-10 block w-full rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                   placeholder="••••••••"
                 />
                 <button
@@ -463,6 +614,11 @@ const ServiceProviderSignUp = () => {
                   {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                 </button>
               </div>
+              {errors.confirmPassword && (
+                <div className="flex items-center mt-1 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.confirmPassword}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -470,12 +626,12 @@ const ServiceProviderSignUp = () => {
       case 2:
         return (
           <div className="fade-in">
-            <h2 className="text-xl font-semibold text-slate-800 mb-5">Address Information</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Address Information</h2>
             
             {/* Street Address */}
             <div className="mb-4">
               <label htmlFor="street" className="block text-sm font-medium text-slate-700 mb-1">
-                Street Address
+                Street Address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -488,9 +644,14 @@ const ServiceProviderSignUp = () => {
                   required
                   value={formData.street}
                   onChange={handleChange}
-                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  className={`pl-10 block w-full rounded-lg border ${errors.street ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                   placeholder="123 Main Street, Apartment 4B"
                 />
+                {errors.street && (
+                  <div className="flex items-center mt-1 text-red-500 text-xs">
+                    <FaExclamationCircle className="mr-1" /> {errors.street}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -499,7 +660,7 @@ const ServiceProviderSignUp = () => {
               {/* City */}
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1">
-                  City
+                  City <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -512,16 +673,21 @@ const ServiceProviderSignUp = () => {
                     required
                     value={formData.city}
                     onChange={handleChange}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    className={`pl-10 block w-full rounded-lg border ${errors.city ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="Mumbai"
                   />
+                  {errors.city && (
+                    <div className="flex items-center mt-1 text-red-500 text-xs">
+                      <FaExclamationCircle className="mr-1" /> {errors.city}
+                    </div>
+                  )}
                 </div>
               </div>
               
               {/* State */}
               <div>
                 <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1">
-                  State
+                  State <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -534,9 +700,14 @@ const ServiceProviderSignUp = () => {
                     required
                     value={formData.state}
                     onChange={handleChange}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    className={`pl-10 block w-full rounded-lg border ${errors.state ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="Maharashtra"
                   />
+                  {errors.state && (
+                    <div className="flex items-center mt-1 text-red-500 text-xs">
+                      <FaExclamationCircle className="mr-1" /> {errors.state}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -544,7 +715,7 @@ const ServiceProviderSignUp = () => {
             {/* Postal Code */}
             <div className="mb-4">
               <label htmlFor="postalCode" className="block text-sm font-medium text-slate-700 mb-1">
-                Postal Code
+                Postal Code <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -557,62 +728,65 @@ const ServiceProviderSignUp = () => {
                   required
                   value={formData.postalCode}
                   onChange={handleChange}
-                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  className={`pl-10 block w-full rounded-lg border ${errors.postalCode ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                   placeholder="400001"
                 />
+                {errors.postalCode && (
+                  <div className="flex items-center mt-1 text-red-500 text-xs">
+                    <FaExclamationCircle className="mr-1" /> {errors.postalCode}
+                  </div>
+                )}
               </div>
             </div>
             
             <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
-              <p className="text-slate-600 text-sm">
-                Your address information will only be shared with clients when you accept their service request. 
-                This helps clients know if you are available in their area.
-              </p>
-            </div>
+  <h3 className="font-medium text-slate-700 mb-2">Service Coverage Area</h3>
+  <p className="text-sm text-slate-500">
+    This address will be used to determine your service coverage area. You'll be able to specify your exact service radius later.
+  </p>
+</div>
           </div>
         );
         
       case 3:
         return (
           <div className="fade-in">
-            <h2 className="text-xl font-semibold text-slate-800 mb-5">Services & Experience</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Services & Experience</h2>
             
             {/* Service Categories */}
-            <div className="mb-5">
+            <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 mb-3">
-                Select Services You Provide <span className="text-slate-500 text-xs">(Select all that apply)</span>
+                Select Services You Provide <span className="text-red-500">*</span>
               </label>
+              
+              {errors.selectedServices && (
+                <div className="flex items-center mb-3 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.selectedServices}
+                </div>
+              )}
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {serviceCategories.map((service) => (
-                  <div 
+                  <div
                     key={service}
                     onClick={() => toggleService(service)}
-                    className={`
-                      service-badge cursor-pointer border rounded-lg p-3 text-center text-sm
-                      ${formData.selectedServices.includes(service) 
-                        ? 'selected' 
-                        : 'border-slate-200 text-slate-700 hover:border-slate-400'
-                      }
-                    `}
+                    className={`service-badge flex items-center px-3 py-2 rounded-lg border cursor-pointer ${
+                      formData.selectedServices.includes(service)
+                        ? 'selected bg-slate-800 text-white border-slate-800'
+                        : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                    }`}
                   >
-                    <FaToolbox className="inline-block mr-2 mb-1" />
-                    {service}
+                    <FaToolbox className="mr-2 h-4 w-4" />
+                    <span className="text-sm">{service}</span>
                   </div>
                 ))}
               </div>
-              
-              {formData.selectedServices.length === 0 && (
-                <p className="text-xs text-orange-500 mt-2">
-                  Please select at least one service
-                </p>
-              )}
             </div>
             
             {/* Years of Experience */}
             <div className="mb-4">
               <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-slate-700 mb-1">
-                Years of Experience
+                Years of Experience <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -627,41 +801,56 @@ const ServiceProviderSignUp = () => {
                   required
                   value={formData.yearsOfExperience}
                   onChange={handleChange}
-                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  className={`pl-10 block w-full rounded-lg border ${errors.yearsOfExperience ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                  placeholder="5"
                 />
+                {errors.yearsOfExperience && (
+                  <div className="flex items-center mt-1 text-red-500 text-xs">
+                    <FaExclamationCircle className="mr-1" /> {errors.yearsOfExperience}
+                  </div>
+                )}
               </div>
             </div>
             
             {/* Experience Description */}
             <div className="mb-4">
               <label htmlFor="experienceDescription" className="block text-sm font-medium text-slate-700 mb-1">
-                Describe Your Experience
+                Experience Description (Optional)
               </label>
               <textarea
                 id="experienceDescription"
                 name="experienceDescription"
                 rows="3"
+                required
                 value={formData.experienceDescription}
                 onChange={handleChange}
-                className="block w-full rounded-lg border border-slate-300 bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
-                placeholder="Share details about your skills, certifications, and notable projects..."
-              ></textarea>
+                className={`block w-full rounded-lg border ${errors.experienceDescription ? 'border-red-500' : 'border-slate-300'} bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="Describe your experience, qualifications, certifications, and specializations..."
+              />
             </div>
             
-            {/* About */}
+            {/* About Me */}
             <div className="mb-4">
               <label htmlFor="about" className="block text-sm font-medium text-slate-700 mb-1">
-                About Yourself
+                About Me
               </label>
               <textarea
                 id="about"
                 name="about"
-                rows="3"
+                rows="4"
+                required
                 value={formData.about}
                 onChange={handleChange}
-                className="block w-full rounded-lg border border-slate-300 bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
-                placeholder="Tell potential clients about yourself, your work ethic, and why they should choose you..."
-              ></textarea>
+                className={`block w-full rounded-lg border ${errors.about ? 'border-red-500' : 'border-slate-300'} bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="Tell potential customers about yourself, your approach to work, and what makes your service special..."
+              />
+            </div>
+            
+            <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <h3 className="font-medium text-slate-700 mb-2">Customer Visibility</h3>
+              <p className="text-sm text-slate-500">
+                This information will be visible to potential customers browsing the platform. Make sure to highlight your expertise and unique qualities.
+              </p>
             </div>
           </div>
         );
@@ -669,197 +858,207 @@ const ServiceProviderSignUp = () => {
       case 4:
         return (
           <div className="fade-in">
-            <h2 className="text-xl font-semibold text-slate-800 mb-5">Review & Submit</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Review & Submit</h2>
             
-            <div className="bg-slate-50 rounded-lg p-4 mb-5 border border-slate-200">
-              <h3 className="font-medium text-slate-800 mb-2">Personal Information</h3>
-              <p className="text-slate-600 text-sm mb-1">
-                <span className="font-medium">Name:</span> {formData.firstName} {formData.lastName}
-              </p>
-              <p className="text-slate-600 text-sm mb-1">
-                <span className="font-medium">Email:</span> {formData.email}
-              </p>
-              <p className="text-slate-600 text-sm">
-                <span className="font-medium">Phone:</span> {formData.phoneNumber}
-                {formData.alternateNumber && `, ${formData.alternateNumber} (alternate)`}
-              </p>
-            </div>
-            
-            <div className="bg-slate-50 rounded-lg p-4 mb-5 border border-slate-200">
-              <h3 className="font-medium text-slate-800 mb-2">Address</h3>
-              <p className="text-slate-600 text-sm">
-                {formData.street}, {formData.city}, {formData.state} - {formData.postalCode}
-              </p>
-            </div>
-            
-            <div className="bg-slate-50 rounded-lg p-4 mb-5 border border-slate-200">
-              <h3 className="font-medium text-slate-800 mb-2">Services & Experience</h3>
+            {/* Summary */}
+            <div className="mb-6 bg-white rounded-lg border border-slate-200 overflow-hidden">
+              {/* Personal */}
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-medium text-slate-800 mb-3">Personal Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                  <div>
+                    <span className="text-slate-500">Name:</span>{' '}
+                    <span className="font-medium">{formData.firstName} {formData.lastName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Email:</span>{' '}
+                    <span className="font-medium">{formData.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Phone:</span>{' '}
+                    <span className="font-medium">{formData.phoneNumber}</span>
+                  </div>
+                  {formData.alternateNumber && (
+                    <div>
+                      <span className="text-slate-500">Alternate Phone:</span>{' '}
+                      <span className="font-medium">{formData.alternateNumber}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
               
-              <div className="mb-2">
-                <p className="text-slate-600 text-sm font-medium">Selected Services:</p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {formData.selectedServices.map(service => (
-                    <span key={service} className="inline-block bg-slate-200 rounded-full px-3 py-1 text-xs font-medium text-slate-700">
-                      {service}
+              {/* Address */}
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-medium text-slate-800 mb-3">Address</h3>
+                <div className="grid grid-cols-1 gap-y-2 text-sm">
+                  <div>
+                    <span className="text-slate-500">Street:</span>{' '}
+                    <span className="font-medium">{formData.street}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">City, State, Postal Code:</span>{' '}
+                    <span className="font-medium">
+                      {formData.city}, {formData.state} {formData.postalCode}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Services */}
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-medium text-slate-800 mb-3">Services</h3>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {formData.selectedServices.map((service) => (
+                    <span
+                      key={service}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800"
+                    >
+                      <FaToolbox className="mr-1 h-3 w-3" /> {service}
                     </span>
                   ))}
                 </div>
+                <div className="text-sm">
+                  <span className="text-slate-500">Years of Experience:</span>{' '}
+                  <span className="font-medium">{formData.yearsOfExperience}</span>
+                </div>
               </div>
               
-              <p className="text-slate-600 text-sm mb-1">
-                <span className="font-medium">Experience:</span> {formData.yearsOfExperience} years
-              </p>
-              
-              {formData.experienceDescription && (
-                <div className="mb-2">
-                  <p className="text-slate-600 text-sm font-medium">Experience Details:</p>
-                  <p className="text-slate-600 text-xs">{formData.experienceDescription}</p>
+              {/* About */}
+              <div className="p-4">
+                <h3 className="text-lg font-medium text-slate-800 mb-3">About & Experience</h3>
+                <div className="text-sm mb-3">
+                  <span className="block text-slate-500 mb-1">Experience:</span>
+                  <p className="text-slate-700">{formData.experienceDescription}</p>
                 </div>
-              )}
-              
-              {formData.about && (
-                <div>
-                  <p className="text-slate-600 text-sm font-medium">About:</p>
-                  <p className="text-slate-600 text-xs">{formData.about}</p>
+                <div className="text-sm">
+                  <span className="block text-slate-500 mb-1">About Me:</span>
+                  <p className="text-slate-700">{formData.about}</p>
                 </div>
-              )}
-            </div>
-            
-            {/* Terms & Conditions Checkbox */}
-            <div className="flex items-start mb-5">
-              <div className="flex items-center h-5">
-                <input
-                  id="agreeTerms"
-                  name="agreeTerms"
-                  type="checkbox"
-                  checked={formData.agreeTerms}
-                  onChange={handleChange}
-                  className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
-                  required
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="agreeTerms" className="text-slate-600">
-                  I agree to the{' '}
-                  <a href="#" className="font-medium text-slate-800 hover:text-slate-700">
-                    Terms of Service
-                  </a>,{' '}
-                  <a href="#" className="font-medium text-slate-800 hover:text-slate-700">
-                    Provider Guidelines
-                  </a>{' '}
-                  and{' '}
-                  <a href="#" className="font-medium text-slate-800 hover:text-slate-700">
-                    Privacy Policy
-                  </a>
-                </label>
               </div>
             </div>
             
-            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-              <p className="text-sm text-slate-600">
-                By clicking "Create Provider Account", you agree to verify your identity and credentials within 7 days. 
-                Your profile will be reviewed by our team before being made visible to potential clients.
-              </p>
+            {/* Terms and Conditions */}
+            <div className="mb-6">
+              <div className="flex items-start">
+                <div className="flex h-5 items-center">
+                  <input
+                    id="agreeTerms"
+                    name="agreeTerms"
+                    type="checkbox"
+                    checked={formData.agreeTerms}
+                    onChange={handleChange}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor="agreeTerms" className="font-medium text-slate-700">
+                    I agree to the terms and conditions <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-slate-500">
+                    By checking this box, you agree to our{' '}
+                    <a href="#" className="text-slate-700 underline hover:text-slate-900">
+                      Terms of Service
+                    </a>{' '}
+                    and{' '}
+                    <a href="#" className="text-slate-700 underline hover:text-slate-900">
+                      Privacy Policy
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              {errors.agreeTerms && (
+                <div className="flex items-center mt-1 ml-7 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.agreeTerms}
+                </div>
+              )}
             </div>
           </div>
         );
-        
+      
       default:
         return null;
     }
   };
 
   return (
-    <div className="signup-container min-h-screen bg-slate-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="signup-container bg-slate-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative">
+      <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
+      
       {/* Background blobs */}
-      <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob-1"></div>
-      <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob-2"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob-3"></div>
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-20 -left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply opacity-20 animate-blob-1"></div>
+        <div className="absolute top-40 -right-20 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply opacity-20 animate-blob-2"></div>
+        <div className="absolute bottom-20 left-40 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply opacity-20 animate-blob-3"></div>
+      </div>
       
-      {/* CSS Animations */}
-      <style>{animationStyles}</style>
-      
-      <div className="max-w-2xl mx-auto">
-        {/* Form Header */}
+      <div className="mt-20 mx-auto max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Become a Service Provider</h1>
-          <p className="text-slate-600 max-w-md mx-auto">
-            Join our network of skilled professionals and start growing your business today.
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 animate-scale-up">
+            Join as a Service Provider
+          </h1>
+          <p className="mt-3 text-slate-600">
+            Create your professional profile and start connecting with customers in your area
           </p>
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="mb-10">
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium text-slate-700">
-              Step {currentStep} of {totalSteps}
-            </span>
-            <span className="text-sm font-medium text-slate-700">
-              {Math.round(completionPercentage)}% Complete
-            </span>
-          </div>
-          <div className="w-full bg-slate-200 rounded-full h-2.5">
-            <div 
-              className="bg-slate-600 h-2.5 rounded-full progress-animation"
-              style={{ width: `${completionPercentage}%` }}
-            ></div>
+          
+          {/* Progress Bar */}
+          <div className="mt-8 mb-6">
+            <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <span>Step {currentStep} of {totalSteps}</span>
+              <span>{completionPercentage}% Complete</span>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-2.5">
+              <div 
+                className="bg-slate-600 h-2.5 rounded-full progress-animation"
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
+            </div>
           </div>
         </div>
         
-        {/* Form Container */}
-        <div className="bg-white shadow-xl rounded-xl p-6 sm:p-8 mb-10 relative z-10">
+        <div className="bg-white shadow-lg rounded-xl p-6 md:p-8 mb-8">
           <form onSubmit={handleSubmit}>
+            {/* Step Content */}
             {renderFormStep()}
             
-            {/* Form Navigation */}
-            <div className="mt-8 flex justify-between items-center">
-              {currentStep > 1 ? (
+            {/* Navigation Buttons */}
+            <div className="mt-8 flex flex-col-reverse sm:flex-row justify-between">
+              {currentStep > 1 && (
                 <button
                   type="button"
                   onClick={handlePrevStep}
-                  className="py-2 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
+                  className="mt-3 sm:mt-0 w-full sm:w-auto px-6 py-3 border border-slate-300 text-slate-700 rounded-lg shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
                 >
-                  Previous
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleUserSignUp}
-                  className="py-2 px-4 border border-slate-300 rounded-lg shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
-                >
-                  Switch to User Sign Up
+                  Back
                 </button>
               )}
+              
+              <div className="flex-grow"></div>
               
               {currentStep < totalSteps ? (
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  className={`py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-600 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 animate-float ${
-                    (currentStep === 3 && formData.selectedServices.length === 0) ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  disabled={currentStep === 3 && formData.selectedServices.length === 0}
+                  className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white rounded-lg shadow-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
                 >
                   Continue
                 </button>
               ) : (
                 <button
                   type="submit"
-                  disabled={!formData.agreeTerms || isLoading}
-                  className={`py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-600 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 ${
-                    (!formData.agreeTerms || isLoading) ? 'opacity-50 cursor-not-allowed' : 'animate-float'
-                  }`}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white rounded-lg shadow-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 flex items-center justify-center"
                 >
                   {isLoading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Processing...
                     </>
                   ) : (
-                    'Create Provider Account'
+                    'Complete Sign Up'
                   )}
                 </button>
               )}
@@ -867,24 +1066,35 @@ const ServiceProviderSignUp = () => {
           </form>
         </div>
         
-        {/* Help Info */}
-        <div className="text-center text-sm text-slate-600 mt-6">
-          <p>Already have an account? <a href="#" className="font-medium text-slate-700 hover:text-slate-900 hover:text-glow">Sign in</a></p>
-          <p className="mt-2">Need help? <a href="#" className="font-medium text-slate-700 hover:text-slate-900 hover:text-glow">Contact support</a></p>
+        {/* Switch to user signup */}
+        <div className="text-center">
+          <p className="text-slate-600">
+            Looking to sign up as a user instead?{' '}
+            <a
+              type="button"
+              href="/SignUp"
+              className="text-slate-800 font-medium hover:text-glow underline hover:text-slate-900"
+            >
+              User Sign Up
+            </a>
+          </p>
         </div>
       </div>
       
-      {/* Floating help button */}
-      <div className={`${buttonPosition} right-4 bottom-${bottomOffset} z-50`}>
-        <button
-          type="button"
-          className="bg-slate-700 text-white rounded-full p-3 shadow-lg hover:bg-slate-800 transition-all duration-300 hover:shadow-xl"
+      {/* Fixed Continue Button on Mobile - Shows only for step < totalSteps */}
+      {currentStep < totalSteps && (
+        <div 
+          className={`sm:hidden ${buttonPosition} left-0 right-0 bottom-${bottomOffset} px-4 py-3 bg-white shadow-lg border-t border-slate-200`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={handleNextStep}
+            className="w-full px-6 py-3 bg-slate-800 text-white rounded-lg shadow-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 animate-float"
+          >
+            Continue
+          </button>
+        </div>
+      )}
     </div>
   );
 };
