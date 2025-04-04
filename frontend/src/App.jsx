@@ -5,6 +5,7 @@ import Home from './Pages/Home';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
 import LoginPage from './Pages/Login';
+import ServiceProviderLogin from './Pages/ServiceProviderLogin';
 import SignUpPage from './Pages/SignUp';
 import ServiceProviderSignUp from './Pages/ServiceProviderSignUp';
 import ShopOwnerSignUp from './Pages/ShopOwnerSignUp';
@@ -12,6 +13,7 @@ import ConfirmLogout from './Components/ConfirmLogout';
 import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
 import Dashboard from './Pages/Dashboard';
+
 
 // Create an AuthContext for robust state management
 const AuthContext = React.createContext({
@@ -85,6 +87,10 @@ const App = () => {
           <Route
             path="/Login"
             element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+          />
+          <Route
+            path="/ServiceProvider-Login"
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <ServiceProviderLogin />}
           />
           <Route
             path="/SignUp"

@@ -4,6 +4,7 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
 import { AuthContext } from '../App'; 
+import ProviderSelectionModal from './ProviderSelectionModal'; // Import the new modal component
 
 // Animation styles remain unchanged
 const animationStyles = `
@@ -106,9 +107,10 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(''); // Added success state
+  const [success, setSuccess] = useState('');
   const [buttonPosition, setButtonPosition] = useState('fixed');
   const [bottomOffset, setBottomOffset] = useState('8');
+  const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   
@@ -192,8 +194,9 @@ const LoginPage = () => {
     }
   };
   
+  // Modified to open the modal
   const handleServiceProviderLogin = () => {
-    navigate('/ServiceProvider-SignUp');
+    setIsModalOpen(true);
   };
 
   const handleGoogleLogin = async (credentialResponse) => {
@@ -237,11 +240,16 @@ const LoginPage = () => {
     }
   };
 
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 overflow-hidden relative login-container">
       {/* Insert the style tag in the JSX */}
       <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
+      
+      {/* Provider Selection Modal */}
+      <ProviderSelectionModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
       
       <div className="absolute inset-0 overflow-hidden">
         {/* Blobs with individual animations */}
@@ -411,15 +419,14 @@ const LoginPage = () => {
             </div>
 
             {/* Social Login - Google Login */}
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 justify-center">
               <GoogleOAuthProvider clientId={import.meta.env.VITE_APP_GOOGLE_CLIENT_ID}>
                 <GoogleLogin
                   onSuccess={handleGoogleLogin}
                   onError={() => setError("Google Login Failed")}
                   theme="outline"
                   size="large"
-                  shape="pill"
-                  width="100%"
+                  shape="rectangle"
                 />
               </GoogleOAuthProvider>
             </div>

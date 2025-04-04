@@ -4,7 +4,7 @@ import axios from 'axios';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthContext } from '../App';
 
-// Create different animations for each blob and add floating animation for the button
+// Original animation styles kept unchanged
 const animationStyles = `
 /* First blob animation */
 @keyframes blob1 {
@@ -136,12 +136,27 @@ const SignUpPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [buttonPosition, setButtonPosition] = useState('fixed');
-  const [success, setSuccess] = useState(''); // Added success state
+  const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  
-  
   const [bottomOffset, setBottomOffset] = useState('8');
   const { login } = useContext(AuthContext);
+
+  // Form validation states
+  const [formErrors, setFormErrors] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    terms: ''
+  });
+  
+  // Form touched states
+  const [touched, setTouched] = useState({
+    fullName: false,
+    email: false,
+    password: false,
+    confirmPassword: false
+  });
 
   // State for provider selection popup
   const [showProviderPopup, setShowProviderPopup] = useState(false);
@@ -197,45 +212,123 @@ const SignUpPage = () => {
       document.body.style.overflow = 'auto';
     };
   }, [showProviderPopup]);
-  
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  
-  try {
-    // Extract first and last name from full name
-    const nameParts = fullName.trim().split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-    
-    // Create user data
-    const userData = {
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-      phoneNumber: '1234567890' // Add phone field to form later
-    };
-    
-    // Send API request
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/register`, userData);
-    
-    // Use AuthContext login function instead of directly setting localStorage
-    // Assuming the API returns a token and role in the response
-    login(response.data.token, response.data.role || 'user', true); // Pass true for rememberMe
-    
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
-    
-  } catch (error) {
-    console.error('Registration error:', error.response?.data?.message || error.message);
-    alert(error.response?.data?.message || 'Registration failed');
-  } finally {
-    setIsLoading(false);
-  }
-};
 
+  // Validate form input on change
+  useEffect(() => {
+    validateForm();
+  }, [fullName, email, password, confirmPassword, agreeTerms]);
+
+  // Handle field blur to mark field as touched
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const errors = {
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      terms: ''
+    };
+
+    // Validate fullName
+    if (fullName.trim() && fullName.trim().length < 3) {
+      errors.fullName = 'Name must be at least 3 characters';
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email.trim() && !emailRegex.test(email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    // Validate password
+    if (password && password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    }
+
+    // Validate confirmPassword
+    if (confirmPassword && password !== confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    // Update form errors
+    setFormErrors(errors);
+
+    // Return whether the form is valid
+    return !Object.values(errors).some(error => error);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Mark all fields as touched for validation display
+    setTouched({
+      fullName: true,
+      email: true,
+      password: true,
+      confirmPassword: true
+    });
+    
+    // Validate form before submission
+    const isValid = validateForm();
+    
+    if (!isValid) {
+      setError('Please fix the errors in the form');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(''); // Clear previous errors
+    
+    try {
+      // Extract first and last name from full name
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
+      // Create user data
+      const userData = {
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmPassword,
+        phoneNumber: '1234567890' // Add phone field to form later
+      };
+      
+      // Send API request
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/register`, userData);
+      
+      // Set success message
+      setSuccess('Account created successfully!');
+      
+      // Use AuthContext login function instead of directly setting localStorage
+      login(response.data.token, response.data.role || 'user', true); // Pass true for rememberMe
+      
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+      
+    } catch (error) {
+      console.error('Registration error:', error);
+      // Handle different types of errors
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        setError(error.response.data.message || 'Registration failed. Please try again.');
+      } else if (error.request) {
+        // The request was made but no response was received
+        setError('Network error. Please check your internet connection.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleServiceProviderSignUp = () => {
     // Show the provider selection popup
@@ -258,6 +351,7 @@ const handleSubmit = async (e) => {
   const closeProviderPopup = () => {
     setShowProviderPopup(false);
   };
+
   const handleGoogleLogin = async (credentialResponse) => {
     setIsLoading(true);
     setError(''); // Clear any previous errors
@@ -278,17 +372,16 @@ const handleSubmit = async (e) => {
       // Use the login function from AuthContext
       login(token, role);
       localStorage.setItem('userInfo', JSON.stringify(userData));
-
       
       // Set success message
       setSuccess(userData.message || 'Google login successful');
       
       // Redirect to dashboard
-      navigate('/dashboard');
+      window.location.href = '/dashboard';
       
     } catch (err) {
-      console.error("Google login error:", err.response?.data || err.message);
-      setError(err.response?.data?.error || "Google login failed");
+      console.error("Google login error:", err);
+      setError(err.response?.data?.error || "Google login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -403,6 +496,19 @@ const handleSubmit = async (e) => {
             <p className="mt-2 text-sm text-slate-600">Join HomeGinnie today</p>
           </div>
           
+          {/* Error and Success Messages */}
+          {error && (
+            <div className="mx-8 mt-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="mx-8 mt-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">
+              {success}
+            </div>
+          )}
+          
           <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Full Name Field */}
@@ -422,10 +528,16 @@ const handleSubmit = async (e) => {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    onBlur={() => handleBlur('fullName')}
+                    className={`pl-10 block w-full rounded-lg border ${
+                      touched.fullName && formErrors.fullName ? 'border-red-300 ring-1 ring-red-300' : 'border-slate-300'
+                    } bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="John Doe"
                   />
                 </div>
+                {touched.fullName && formErrors.fullName && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.fullName}</p>
+                )}
               </div>
 
               {/* Email Field */}
@@ -445,10 +557,16 @@ const handleSubmit = async (e) => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    onBlur={() => handleBlur('email')}
+                    className={`pl-10 block w-full rounded-lg border ${
+                      touched.email && formErrors.email ? 'border-red-300 ring-1 ring-red-300' : 'border-slate-300'
+                    } bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="you@example.com"
                   />
                 </div>
+                {touched.email && formErrors.email && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -468,7 +586,10 @@ const handleSubmit = async (e) => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    onBlur={() => handleBlur('password')}
+                    className={`pl-10 block w-full rounded-lg border ${
+                      touched.password && formErrors.password ? 'border-red-300 ring-1 ring-red-300' : 'border-slate-300'
+                    } bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="••••••••"
                   />
                   <button
@@ -479,6 +600,9 @@ const handleSubmit = async (e) => {
                     {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                   </button>
                 </div>
+                {touched.password && formErrors.password && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+                )}
               </div>
 
               {/* Confirm Password Field */}
@@ -498,7 +622,10 @@ const handleSubmit = async (e) => {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                    onBlur={() => handleBlur('confirmPassword')}
+                    className={`pl-10 block w-full rounded-lg border ${
+                      touched.confirmPassword && formErrors.confirmPassword ? 'border-red-300 ring-1 ring-red-300' : 'border-slate-300'
+                    } bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
                     placeholder="••••••••"
                   />
                   <button
@@ -509,6 +636,9 @@ const handleSubmit = async (e) => {
                     {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                   </button>
                 </div>
+                {touched.confirmPassword && formErrors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</p>
+                )}
               </div>
 
               {/* Terms & Conditions Checkbox */}
@@ -520,7 +650,9 @@ const handleSubmit = async (e) => {
                     type="checkbox"
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                    className={`h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500 ${
+                      !agreeTerms && formErrors.terms ? 'border-red-300 ring-1 ring-red-300' : ''
+                    }`}
                     required
                   />
                 </div>

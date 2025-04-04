@@ -41,7 +41,7 @@ const userSchema = new Schema({
   },
   lastName: {
     type: String,
-    required: [true, 'Last name is required'],
+    required: [false, 'Last name is required'],
     trim: true
   },
   email: {
