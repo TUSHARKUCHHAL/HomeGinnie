@@ -1,6 +1,6 @@
-// shopSchema.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const bcrypt = require('bcryptjs');
 
 const itemSchema = new Schema({
   itemId: {
@@ -76,7 +76,7 @@ const itemSchema = new Schema({
   }
 });
 
-const shopSchema = new Schema({
+const shopOwnerSchema = new Schema({
   firstName: {
     type: String,
     required: [true, 'First name is required'],
@@ -132,37 +132,50 @@ const shopSchema = new Schema({
       trim: true
     }
   },
-  gstNumber: {
+  googleId: {
     type: String,
-    trim: true
-    // Optional field
+    sparse: true
   },
-  shopType: {
-    type: String,
-    required: [true, 'Shop type is required'],
-    enum: ['retail', 'wholesale', 'service', 'restaurant', 'other'],
-    trim: true
-  },
-  deliveryProvided: {
+  profileComplete: {
     type: Boolean,
     default: false
   },
-  items: [itemSchema],
-  establishedDate: {
-    type: Date
-  },
-  logo: {
+  avatar: {
     type: String,
-    default: 'default-shop-logo.png'
+    default: 'default-avatar.png'
   },
-  businessHours: {
-    monday: { open: String, close: String },
-    tuesday: { open: String, close: String },
-    wednesday: { open: String, close: String },
-    thursday: { open: String, close: String },
-    friday: { open: String, close: String },
-    saturday: { open: String, close: String },
-    sunday: { open: String, close: String }
+  shopDetails: {
+    gstNumber: {
+      type: String,
+      trim: true
+    },
+    shopType: {
+      type: String,
+      enum: ['retail', 'wholesale', 'service', 'restaurant', 'other'],
+      trim: true
+    },
+    deliveryProvided: {
+      type: Boolean,
+      default: false
+    },
+    items: [itemSchema],
+    establishedDate: {
+      type: Date,
+      default: Date.now
+    },
+    logo: {
+      type: String,
+      default: 'default-shop-logo.png'
+    },
+    businessHours: {
+      monday: { open: String, close: String },
+      tuesday: { open: String, close: String },
+      wednesday: { open: String, close: String },
+      thursday: { open: String, close: String },
+      friday: { open: String, close: String },
+      saturday: { open: String, close: String },
+      sunday: { open: String, close: String }
+    }
   },
   isVerified: {
     type: Boolean,
@@ -192,19 +205,7 @@ const shopSchema = new Schema({
   timestamps: true
 });
 
-// Hash password before saving
-shopSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  try {
-    // You would typically use bcrypt here
-    // const salt = await bcrypt.genSalt(10);
-    // this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+// Renamed the model to match what's being imported in the routes
+const ShopOwner = mongoose.model('ShopOwner', shopOwnerSchema);
 
-const Shop = mongoose.model('Shop', shopSchema);
-
-module.exports = Shop;
+module.exports = ShopOwner;

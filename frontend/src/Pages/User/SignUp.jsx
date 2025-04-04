@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser } from 'react-icons/fa';
 import axios from 'axios';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
-import { AuthContext } from '../App';
+import { AuthContext } from '../../App';
 
 // Original animation styles kept unchanged
 const animationStyles = `
