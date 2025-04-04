@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
 import { AuthContext } from '../../App'; 
-import ProviderSelectionModal from '../User/ProviderSelectionModal'; // Import the new modal component
 
 // Animation styles remain unchanged
 const animationStyles = `
@@ -109,7 +108,7 @@ const LoginPage = () => {
   const [success, setSuccess] = useState('');
   const [buttonPosition, setButtonPosition] = useState('fixed');
   const [bottomOffset, setBottomOffset] = useState('8');
-  const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   
@@ -182,8 +181,12 @@ const LoginPage = () => {
         sessionStorage.setItem('userInfo', JSON.stringify(userData));
       }
       
+      setSuccess('Login successful! Redirecting to dashboard...');
+      
       // Redirect to dashboard using React Router
-      navigate('/dashboard');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
       
     } catch (error) {
       console.error('Login error:', error.response?.data?.message || error.message);
@@ -193,21 +196,12 @@ const LoginPage = () => {
     }
   };
   
-  // Modified to open the modal
-  const handleServiceProviderLogin = () => {
-    setIsModalOpen(true);
-  };
 
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 overflow-hidden relative login-container">
       {/* Insert the style tag in the JSX */}
       <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
-      
-      {/* Provider Selection Modal */}
-      <ProviderSelectionModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
       
       <div className="absolute inset-0 overflow-hidden">
         {/* Blobs with individual animations */}
@@ -216,40 +210,13 @@ const LoginPage = () => {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-slate-100 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob-3"></div>
       </div>
       
-      {/* Service Provider Button - Position dynamically changes */}
-      <div 
-        style={{ 
-          position: buttonPosition, 
-          bottom: `${bottomOffset}px`, 
-          right: '32px',
-          zIndex: 10
-        }}
-        className="service-provider-button"
-      >
-        <button
-          onClick={handleServiceProviderLogin}
-          className="bg-slate-900 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-colors animate-float flex items-center hover:text-glow"
-        >
-          <span>Continue as Provider</span>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4 ml-2" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </button>
-      </div>
-      
       <div className="w-full max-w-md z-10">
         {/* Login Card containing all elements */}
         <div className="bg-white/95 backdrop-blur-sm mt-28 mb-12 rounded-xl shadow-md border border-slate-200 overflow-hidden">
           {/* Welcome text inside the card */}
           <div className="px-8 pt-8 text-center">
             <h1 className="text-2xl font-bold text-slate-900">Welcome Back</h1>
-            <p className="mt-2 text-sm text-slate-600">Sign in to your HomeGinnie account</p>
+            <p className="mt-2 text-sm text-slate-600">Sign in to your HomeGinnie Service account</p>
           </div>
           
           <div className="p-8">
@@ -363,18 +330,7 @@ const LoginPage = () => {
                 </button>
               </div>
             </form>
-
-            {/* Divider */}
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-slate-500">Or Login with</span>
-                </div>
-              </div>
-            </div>   
+            
             {/* Sign Up Link - Inside the card */}
             <p className="mt-6 text-center text-sm text-slate-600">
               Don't have an account?{' '}
