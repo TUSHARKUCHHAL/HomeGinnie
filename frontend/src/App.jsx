@@ -6,6 +6,7 @@ import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
 
 import LoginPage from './Pages/User/Login';
+import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
 import SignUpPage from './Pages/User/SignUp';
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
