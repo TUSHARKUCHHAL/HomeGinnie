@@ -1,31 +1,22 @@
-// userSchema.js
+// serviceProviderSchema.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const discountCouponSchema = new Schema({
-  code: {
+const feedbackSchema = new Schema({
+  heading: {
     type: String,
     required: true,
-    unique: true,
     trim: true
   },
-  discountPercentage: {
-    type: Number,
+  description: {
+    type: String,
     required: true,
-    min: 0,
-    max: 100
+    trim: true
   },
-  maxDiscountAmount: {
-    type: Number,
-    default: 0
-  },
-  expiryDate: {
-    type: Date,
-    required: true
-  },
-  isUsed: {
-    type: Boolean,
-    default: false
+  media: {
+    type: String,
+    trim: true,
+    // URL to image or video content
   },
   createdAt: {
     type: Date,
@@ -33,7 +24,35 @@ const discountCouponSchema = new Schema({
   }
 });
 
-const userSchema = new Schema({
+const paymentDetailsSchema = new Schema({
+  accountHolder: {
+    type: String,
+    trim: true
+  },
+  accountNumber: {
+    type: String,
+    trim: true
+  },
+  bankName: {
+    type: String,
+    trim: true
+  },
+  ifscCode: {
+    type: String,
+    trim: true
+  },
+  upiId: {
+    type: String,
+    trim: true
+  },
+  preferredPaymentMethod: {
+    type: String,
+    enum: ['bank', 'upi', 'cash'],
+    default: 'bank'
+  }
+});
+
+const serviceProviderSchema = new Schema({
   firstName: {
     type: String,
     required: [true, 'First name is required'],
@@ -56,10 +75,6 @@ const userSchema = new Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [8, 'Password should be at least 8 characters long']
-  },
-  avatar: {
-    type: String,
-    default: 'default-avatar.png'
   },
   phoneNumber: {
     type: String,
@@ -93,6 +108,34 @@ const userSchema = new Schema({
       trim: true
     }
   },
+  services: [{
+    type: String,
+    trim: true
+  }],
+  experience: {
+    years: {
+      type: Number,
+      default: 0
+    },
+    description: {
+      type: String,
+      trim: true
+    }
+  },
+  about: {
+    type: String,
+    trim: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'suspended'],
+    default: 'pending'
+  },
+  paymentDetails: paymentDetailsSchema,
   rating: {
     average: {
       type: Number,
@@ -105,7 +148,11 @@ const userSchema = new Schema({
       default: 0
     }
   },
-  discountCoupons: [discountCouponSchema],
+  feedback: [feedbackSchema],
+  gennieCoins: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -119,7 +166,7 @@ const userSchema = new Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+serviceProviderSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   try {
     // You would typically use bcrypt here
@@ -131,6 +178,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-const User = mongoose.model('User', userSchema);
+const ServiceProvider = mongoose.model('ServiceProvider', serviceProviderSchema);
 
-module.exports = User;
+module.exports = ServiceProvider;
