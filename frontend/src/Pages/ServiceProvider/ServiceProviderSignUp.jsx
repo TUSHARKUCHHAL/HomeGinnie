@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaToolbox, FaStar, FaMapMarkerAlt, FaRegIdCard, FaExclamationCircle } from 'react-icons/fa';
 import { IoBusinessSharp } from 'react-icons/io5';
 import axios from 'axios';
-import { AuthContext } from '../App';
+import { AuthContext } from '../../App';
 
 // Animation styles - keep consistent with the existing theme
 const animationStyles = `

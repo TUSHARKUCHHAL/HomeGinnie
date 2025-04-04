@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../App';
+import { AuthContext } from '../../App';
 
 const ShopRegistrationForm = () => {
   // State management for form data

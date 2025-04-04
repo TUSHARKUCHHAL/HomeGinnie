@@ -4,16 +4,16 @@ import './App.css';
 import Home from './Pages/Home';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
-import LoginPage from './Pages/Login';
-import SignUpPage from './Pages/SignUp';
-import ServiceProviderSignUp from './Pages/ServiceProviderSignUp';
-import ShopOwnerSignUp from './Pages/ShopOwnerSignUp';
+import LoginPage from './Pages/User/Login';
+import SignUpPage from './Pages/User/SignUp';
+import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
+import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp';
 import ConfirmLogout from './Components/ConfirmLogout';
 import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
-import Dashboard from './Pages/Dashboard';
-import ServiceProviderDashboard from './Pages/ServiceProviderDashboard';
-import ShopsDashboard from './Pages/ShopsDashboard';
+import Dashboard from './Pages/User/Dashboard';
+import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
+import ShopsDashboard from './Pages/Shop/ShopsDashboard';
 
 // Create an AuthContext for robust state management
 const AuthContext = React.createContext({

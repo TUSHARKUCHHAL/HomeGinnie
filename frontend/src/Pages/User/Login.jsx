@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { AuthContext } from '../App'; 
+import { AuthContext } from '../../App'; 
 
 // Animation styles remain unchanged
 const animationStyles = `
