@@ -88,6 +88,11 @@ const animationStyles = `
 .animate-float {
   animation: float 3s infinite ease-in-out;
 }
+
+.hover\\:text-glow:hover {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 255, 255, 0.2);
+  transition: text-shadow 0.3s ease;
+}
 `;
 
 const LoginPage = () => {
@@ -184,7 +189,7 @@ const LoginPage = () => {
       >
         <button
           onClick={handleServiceProviderLogin}
-          className="bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-colors animate-float flex items-center"
+          className="bg-slate-900 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-colors animate-float flex items-center hover:text-glow"
         >
           <span>Continue as Provider</span>
           <svg 
@@ -204,7 +209,7 @@ const LoginPage = () => {
         <div className="bg-white/95 backdrop-blur-sm mt-28 mb-12 rounded-xl shadow-md border border-slate-200 overflow-hidden">
           {/* Welcome text inside the card */}
           <div className="px-8 pt-8 text-center">
-            <h1 className="text-2xl font-bold text-slate-800">Welcome Back</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Welcome Back</h1>
             <p className="mt-2 text-sm text-slate-600">Sign in to your HomeGinnie account</p>
           </div>
           
