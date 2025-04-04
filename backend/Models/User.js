@@ -5,13 +5,13 @@ const { Schema } = mongoose;
 const discountCouponSchema = new Schema({
   code: {
     type: String,
-    required: true,
-    unique: true,
+    required: false,
+    unique: false,
     trim: true
   },
   discountPercentage: {
     type: Number,
-    required: true,
+    required: false,
     min: 0,
     max: 100
   },
@@ -21,7 +21,7 @@ const discountCouponSchema = new Schema({
   },
   expiryDate: {
     type: Date,
-    required: true
+    required: false
   },
   isUsed: {
     type: Boolean,

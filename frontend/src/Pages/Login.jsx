@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import axios from 'axios';
+import { AuthContext } from '../App'; 
 
 // Create different animations for each blob and add floating animation for the button
 const animationStyles = `
@@ -105,6 +107,8 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [buttonPosition, setButtonPosition] = useState('fixed');
   const [bottomOffset, setBottomOffset] = useState('8');
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Function to check for footer visibility and adjust button position
@@ -161,22 +165,22 @@ const LoginPage = () => {
         password
       });
       
-      // Save token to localStorage if remember me is checked
+      const userData = response.data;
+      const token = userData.token;
+      const role = userData.role || 'user'; // Default to 'user' if role is not provided
+      
+      // Update auth context with rememberMe parameter
+      login(token, role, rememberMe);
+      
+      // Save additional user info based on remember me preference
       if (rememberMe) {
-        localStorage.setItem('userToken', response.data.token);
-        localStorage.setItem('rememberMe', true);
+        localStorage.setItem('userInfo', JSON.stringify(userData));
       } else {
-        // Use sessionStorage if not remembering
-        sessionStorage.setItem('userToken', response.data.token);
-
+        sessionStorage.setItem('userInfo', JSON.stringify(userData));
       }
       
-      // Store user info
-      localStorage.setItem('userInfo', JSON.stringify(response.data));
-      localStorage.setItem('userRole', "user");
-      
-      // Redirect to dashboard
-      window.location.href = '/dashboard';
+      // Redirect to dashboard using React Router
+      navigate('/dashboard');
       
     } catch (error) {
       console.error('Login error:', error.response?.data?.message || error.message);
@@ -185,10 +189,9 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
-
+  
   const handleServiceProviderLogin = () => {
-    console.log('Service Provider login clicked');
-    // Add your service provider login logic here
+    navigate('/ServiceProvider-SignUp');
   };
 
   return (

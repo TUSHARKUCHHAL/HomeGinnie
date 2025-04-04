@@ -3,15 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children, isLoggedIn, allowedRoles, userRole }) => {
   const location = useLocation();
-  const token = localStorage.getItem('token');
-
-  // Debug logging
-  console.log('ProtectedRoute Debug:', {
-    isLoggedIn,
-    token,
-    userRole,
-    allowedRoles
-  });
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
   // Check if token exists
   if (!token) {
