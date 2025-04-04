@@ -162,14 +162,14 @@ const LoginPage = () => {
     setError('');
     
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/login`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/service-providers/login`, {
         email,
         password
       });
       
       const userData = response.data;
       const token = userData.token;
-      const role = userData.role || 'user'; // Default to 'user' if role is not provided
+      const role = "service-provider"; 
       
       // Update auth context with rememberMe parameter
       login(token, role, rememberMe);
@@ -185,7 +185,7 @@ const LoginPage = () => {
       
       // Redirect to dashboard using React Router
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/service-provider-dashboard');
       }, 1000);
       
     } catch (error) {
