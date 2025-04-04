@@ -11,7 +11,7 @@ import ShopOwnerSignUp from './Pages/ShopOwnerSignUp';
 import ConfirmLogout from './Components/ConfirmLogout';
 import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
-import Dashboard from './Pages/Dashboard';
+import BookAPro from './Pages/BookAPro';
 
 // Create an AuthContext for robust state management
 const AuthContext = React.createContext({
@@ -84,15 +84,15 @@ const App = () => {
           {/* Auth routes - redirect to home if already logged in */}
           <Route
             path="/Login"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <LoginPage />}
           />
           <Route
             path="/SignUp"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignUpPage />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <SignUpPage />}
           />
           <Route
             path="/ServiceProvider-SignUp"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <ServiceProviderSignUp />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ServiceProviderSignUp />}
           />
           <Route
             path="/ShopOwner-SignUp"
@@ -101,14 +101,14 @@ const App = () => {
 
           {/* Protected routes - only accessible when logged in */}
           <Route
-            path="/dashboard"
+            path="/book-a-pro"
             element={
               <ProtectedRoute
                 isLoggedIn={isLoggedIn}
                 allowedRoles={["user", "admin"]}
                 userRole={userRole}
               >
-                <Dashboard />
+                <BookAPro />
               </ProtectedRoute>
             }
           />
