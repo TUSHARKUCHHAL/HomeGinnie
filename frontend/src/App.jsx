@@ -7,6 +7,7 @@ import Navbar from './Components/Navbar';
 import LoginPage from './Pages/Login';
 import SignUpPage from './Pages/SignUp';
 import ServiceProviderSignUp from './Pages/ServiceProviderSignUp';
+import ShopOwnerSignUp from './Pages/ShopOwnerSignUp';
 import ConfirmLogout from './Components/ConfirmLogout';
 import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
@@ -92,6 +93,10 @@ const App = () => {
           <Route
             path="/ServiceProvider-SignUp"
             element={isLoggedIn ? <Navigate to="/" replace /> : <ServiceProviderSignUp />}
+          />
+          <Route
+            path="/ShopOwner-SignUp"
+            element={isLoggedIn ? <Navigate to="/" replace /> : <ShopOwnerSignUp />}
           />
 
           {/* Protected routes - only accessible when logged in */}
