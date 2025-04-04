@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import './App.css';
+
+// Importing components and pages
 import Home from './Pages/Home';
 import About from './Pages/About';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
 
+
+// Simple User Routes
 import LoginPage from './Pages/User/Login';
 import SignUpPage from './Pages/User/SignUp';
+import BookAPro from './Pages/User/BookAPro';
 
-
+// Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
+import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
 
+// Shop Owner Routes
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
 import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
+import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
+
 
 import ConfirmLogout from './Components/ConfirmLogout';
 import ProtectedRoute from './Components/ProtectedRoute';
 
-
-import BookAPro from './Pages/User/BookAPro';
-import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
-import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
+import './App.css';
 
 
 // Create an AuthContext for robust state management
