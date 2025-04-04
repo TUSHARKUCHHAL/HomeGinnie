@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css';
 import Home from './Pages/Home';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar'; 
@@ -9,6 +10,7 @@ import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
 import Dashboard from './Pages/Dashboard';
 import './App.css';
+import ServiceProviderSignUp from './Pages/ServiceProviderSignUp';
 
 // Create an AuthContext for robust state management
 const AuthContext = React.createContext({
@@ -63,6 +65,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/Login" element={<LoginPage />} />
             <Route path="/SignUp" element={<SignUpPage />} />
+            <Route path="/ServiceProvider-SignUp" element={<ServiceProviderSignUp />} />
             <Route path="/About" element={<About />} />
 
             <Route
