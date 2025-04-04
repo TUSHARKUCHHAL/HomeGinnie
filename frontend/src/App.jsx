@@ -2,23 +2,25 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import './App.css';
 import Home from './Pages/Home';
+import About from './Pages/About';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
 
 import LoginPage from './Pages/User/Login';
-import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
 import SignUpPage from './Pages/User/SignUp';
+
+
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
+
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
 import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
 
 import ConfirmLogout from './Components/ConfirmLogout';
-import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
 
 
-import Dashboard from './Pages/User/BookAPro';
+import BookAPro from './Pages/User/BookAPro';
 import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
 import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
 
@@ -126,7 +128,7 @@ const App = () => {
                 allowedRoles={["user", "admin"]}
                 userRole={userRole}
               >
-                <Dashboard />
+                <BookAPro />
               </ProtectedRoute>
             }
           />
@@ -161,7 +163,7 @@ const App = () => {
             element={
                 <ProtectedRoute
                 isLoggedIn={isLoggedIn}
-                allowedRoles={["user", "admin"]}
+                allowedRoles={["user","shop-owner","service-provider", "admin"]}
                 userRole={userRole}
                  >
                  <ConfirmLogout />
