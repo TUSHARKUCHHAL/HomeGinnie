@@ -705,15 +705,14 @@ const SignUpPage = () => {
             </div>
 
             {/* Social Sign Up */}
-            <div className="mt-6 flex justify-center">
+            <div className="mt-6 justify-center">
               <GoogleOAuthProvider clientId={import.meta.env.VITE_APP_GOOGLE_CLIENT_ID}>
                 <GoogleLogin
                   onSuccess={handleGoogleLogin}
                   onError={() => setError("Google Login Failed")}
                   theme="outline"
                   size="large"
-                  shape="pill"
-                  width="100%"
+                  shape="rectangle"
                 />
               </GoogleOAuthProvider>
             </div>
