@@ -75,7 +75,7 @@ const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
             <a href="/" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Home</a>
-            <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Book a Pro</a>
+            <a href="/book-a-pro" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Book a Pro</a>
             <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Buy Smart</a>
             <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Services</a>
             <a href="About" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">About</a>
@@ -141,7 +141,7 @@ const Navbar = () => {
                 Home
               </a>
               <a 
-                href="#" 
+                href="/book-a-pro" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
               >
                 <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
