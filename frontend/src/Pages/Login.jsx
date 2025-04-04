@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-// Create different animations for each blob
+// Create different animations for each blob and add floating animation for the button
 const animationStyles = `
 /* First blob animation */
 @keyframes blob1 {
@@ -60,6 +60,19 @@ const animationStyles = `
   }
 }
 
+/* Floating animation for the service provider button */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
 .animate-blob-1 {
   animation: blob1 8s infinite ease-in-out;
 }
@@ -71,6 +84,10 @@ const animationStyles = `
 .animate-blob-3 {
   animation: blob3 9s infinite ease-in-out;
 }
+
+.animate-float {
+  animation: float 3s infinite ease-in-out;
+}
 `;
 
 const LoginPage = () => {
@@ -79,6 +96,52 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [buttonPosition, setButtonPosition] = useState('fixed');
+  const [bottomOffset, setBottomOffset] = useState('8');
+  
+  useEffect(() => {
+    // Function to check for footer visibility and adjust button position
+    const handleScroll = () => {
+      const footerElement = document.querySelector('footer');
+      
+      if (footerElement) {
+        const footerRect = footerElement.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        
+        // If footer is visible in the viewport
+        if (footerRect.top < windowHeight) {
+          // Calculate how much of the footer is visible
+          const footerVisibleHeight = windowHeight - footerRect.top;
+          
+          // Adjust the button position to be above the footer
+          if (footerVisibleHeight > 0) {
+            setButtonPosition('absolute');
+            // Calculate position from bottom of login container
+            const loginContainer = document.querySelector('.login-container');
+            if (loginContainer) {
+              const loginContainerRect = loginContainer.getBoundingClientRect();
+              setBottomOffset((loginContainerRect.bottom - footerRect.top + 8).toString());
+            }
+          }
+        } else {
+          // Reset to fixed position if footer is not visible
+          setButtonPosition('fixed');
+          setBottomOffset('8');
+        }
+      }
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial check
+    handleScroll();
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
   
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -92,8 +155,13 @@ const LoginPage = () => {
     }, 1000);
   };
 
+  const handleServiceProviderLogin = () => {
+    console.log('Service Provider login clicked');
+    // Add your service provider login logic here
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 overflow-hidden relative">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 overflow-hidden relative login-container">
       {/* Insert the style tag in the JSX */}
       <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
       
@@ -102,6 +170,33 @@ const LoginPage = () => {
         <div className="absolute top-0 -left-4 w-72 h-72 bg-slate-200 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob-1"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-slate-300 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob-2"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-slate-100 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob-3"></div>
+      </div>
+      
+      {/* Service Provider Button - Position dynamically changes */}
+      <div 
+        style={{ 
+          position: buttonPosition, 
+          bottom: `${bottomOffset}px`, 
+          right: '32px',
+          zIndex: 10
+        }}
+        className="service-provider-button"
+      >
+        <button
+          onClick={handleServiceProviderLogin}
+          className="bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-colors animate-float flex items-center"
+        >
+          <span>Continue as Provider</span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-4 w-4 ml-2" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
       </div>
       
       <div className="w-full max-w-md z-10">
