@@ -12,6 +12,8 @@ import Navbar from './Components/Navbar';
 import LoginPage from './Pages/User/Login';
 import SignUpPage from './Pages/User/SignUp';
 import BookAPro from './Pages/User/BookAPro';
+import ForgotPassword from "./Pages/User/ResetPassword/ForgetPassword";
+import ResetPassword from "./Pages/User/ResetPassword/ResetPassword";
 
 // Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
@@ -97,6 +99,8 @@ const App = () => {
           {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/About" element={<About />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
+          <Route path="/ResetPassword/:token" element={<ResetPassword />} />
 
           {/* Auth routes - redirect to home if already logged in */}
           <Route

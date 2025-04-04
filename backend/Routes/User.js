@@ -3,15 +3,29 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require("nodemailer")
+const crypto = require("crypto")
 const { check, validationResult } = require('express-validator');
 const User = require('../Models/User');
 const { OAuth2Client } = require('google-auth-library');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
+
+// Configure Nodemailer with error handling
+const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass:process.env.EMAIL_PASS ,
+    }
+  })
+  
 
 // Auth middleware
 const protect = async (req, res, next) => {
@@ -266,5 +280,143 @@ router.put('/profile', protect, async (req, res, next) => {
     next(error);
   }
 });
+
+
+// Middleware to validate email
+const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+  
+  // Middleware for error handling
+  const handleError = (res, error, customMessage = "Server error") => {
+    console.error(`❌ ${customMessage}:`, error)
+    return res.status(500).json({ 
+      message: customMessage, 
+      error: error.message || error 
+    })
+  }
+  
+  
+  router.post("/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body
+      
+      // Validate email format
+      if (!validateEmail(email)) {
+        return res.status(400).json({ message: "Invalid email format" })
+      }
+  
+      // Find user with proper error handling
+      const user = await User.findOne({ email }).exec()
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+  
+      // Generate tokens with stronger randomness
+      const token = crypto.randomBytes(64).toString("hex")
+      const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { 
+        expiresIn: "1h" 
+      })
+  
+      // Update user with reset tokens
+      user.resetPasswordToken = token
+      user.resetPasswordExpires = Date.now() + 3600000
+      
+      // Save with error handling
+      try {
+        await user.save()
+      } catch (saveError) {
+        return handleError(res, saveError, "Failed to save reset token")
+      }
+  
+      const resetUrl = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`
+  
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "Password Reset Request for Your Account",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+            </div>
+            <h2 style="color: #333; margin-bottom: 15px;">Password Reset Request</h2>
+            <p style="color: #555; line-height: 1.5;">Hello,</p>
+            <p style="color: #555; line-height: 1.5;">We received a request to reset the password for your account. If you didn't make this request, you can safely ignore this email.</p>
+            <div style="margin: 25px 0; text-align: center;">
+              <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Your Password</a>
+            </div>
+            <p style="color: #555; line-height: 1.5;">This link will expire in 1 hour for security reasons.</p>
+            <p style="color: #555; line-height: 1.5;">If the button above doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background-color: #f7f7f7; padding: 10px; border-radius: 3px; font-size: 14px;">${resetUrl}</p>
+            <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px;">
+              <p>If you didn't request this password reset, please contact our support team immediately at ${process.env.SUPPORT_EMAIL || 'support@blackvire.com'}.</p>
+              <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || 'BLACKVIRE'}. All rights reserved.</p>
+            </div>
+          </div>
+        `
+      };
+  
+      // Send email with comprehensive error handling
+      try {
+        await transporter.sendMail(mailOptions)
+        res.json({ message: "Reset link sent to your email" })
+      } catch (emailError) {
+        return handleError(res, emailError, "Failed to send reset email")
+      }
+    } catch (error) {
+      handleError(res, error)
+    }
+  })
+  
+  router.post("/reset-password/:token", async (req, res) => {
+    try {
+      const { token } = req.params
+      const { newPassword } = req.body
+  
+      // Validate password strength
+      if (newPassword.length < 8) {
+        return res.status(400).json({ 
+          message: "Password must be at least 8 characters long" 
+        })
+      }
+
+  
+      // Verify token with error handling
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET)
+      } catch (tokenError) {
+        return res.status(400).json({ message: "Invalid or expired token" })
+      }
+  
+      // Find user with proper query
+      const user = await User.findById(decoded.id).exec()
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+  
+          // Hash new password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(newPassword, salt)
+
+      // Update user password
+      user.password = hashedPassword
+      user.resetPasswordToken = undefined
+      user.resetPasswordExpires = undefined
+  
+      // Save with error handling
+      try {
+        await user.save()
+        res.json({ message: "Password reset successful" })
+      } catch (saveError) {
+        return handleError(res, saveError, "Failed to update password")
+      }
+    } catch (error) {
+      handleError(res, error)
+    }
+  })
+  
+  
 
 module.exports = router;
