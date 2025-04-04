@@ -7,7 +7,7 @@ import Navbar from './Components/Navbar';
 import LoginPage from './Pages/Login';
 import SignUpPage from './Pages/SignUp';
 import About from './Pages/About'; 
-
+import './App.css';
 
 
 const App = () => {

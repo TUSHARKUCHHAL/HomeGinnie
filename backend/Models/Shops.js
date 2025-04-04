@@ -1,39 +1,82 @@
-// userSchema.js
+// shopSchema.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const discountCouponSchema = new Schema({
-  code: {
+const itemSchema = new Schema({
+  itemId: {
     type: String,
     required: true,
-    unique: true,
+    unique: true
+  },
+  name: {
+    type: String,
+    required: true,
     trim: true
   },
-  discountPercentage: {
+  price: {
     type: Number,
     required: true,
-    min: 0,
-    max: 100
+    min: 0
   },
-  maxDiscountAmount: {
-    type: Number,
-    default: 0
+  description: {
+    type: String,
+    trim: true
   },
-  expiryDate: {
-    type: Date,
-    required: true
+  category: {
+    type: String,
+    trim: true
   },
-  isUsed: {
+  rating: {
+    average: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    count: {
+      type: Number,
+      default: 0
+    }
+  },
+  reviews: [{
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
+    comment: {
+      type: String,
+      trim: true
+    },
+    date: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  images: [{
+    type: String,
+    trim: true
+  }],
+  inStock: {
     type: Boolean,
-    default: false
+    default: true
   },
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-const userSchema = new Schema({
+const shopSchema = new Schema({
   firstName: {
     type: String,
     required: [true, 'First name is required'],
@@ -56,10 +99,6 @@ const userSchema = new Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [8, 'Password should be at least 8 characters long']
-  },
-  avatar: {
-    type: String,
-    default: 'default-avatar.png'
   },
   phoneNumber: {
     type: String,
@@ -93,6 +132,42 @@ const userSchema = new Schema({
       trim: true
     }
   },
+  gstNumber: {
+    type: String,
+    trim: true
+    // Optional field
+  },
+  shopType: {
+    type: String,
+    required: [true, 'Shop type is required'],
+    enum: ['retail', 'wholesale', 'service', 'restaurant', 'other'],
+    trim: true
+  },
+  deliveryProvided: {
+    type: Boolean,
+    default: false
+  },
+  items: [itemSchema],
+  establishedDate: {
+    type: Date
+  },
+  logo: {
+    type: String,
+    default: 'default-shop-logo.png'
+  },
+  businessHours: {
+    monday: { open: String, close: String },
+    tuesday: { open: String, close: String },
+    wednesday: { open: String, close: String },
+    thursday: { open: String, close: String },
+    friday: { open: String, close: String },
+    saturday: { open: String, close: String },
+    sunday: { open: String, close: String }
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
   rating: {
     average: {
       type: Number,
@@ -105,7 +180,6 @@ const userSchema = new Schema({
       default: 0
     }
   },
-  discountCoupons: [discountCouponSchema],
   createdAt: {
     type: Date,
     default: Date.now
@@ -119,7 +193,7 @@ const userSchema = new Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+shopSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   try {
     // You would typically use bcrypt here
@@ -131,6 +205,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-const User = mongoose.model('User', userSchema);
+const Shop = mongoose.model('Shop', shopSchema);
 
-module.exports = User;
+module.exports = Shop;
