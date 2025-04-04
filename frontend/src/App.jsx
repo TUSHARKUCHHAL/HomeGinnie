@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 // Importing components and pages
 import Home from './Pages/Home';
 import About from './Pages/About';
+import ContactUs from './Components/Contact';
 import BookAPro from './Pages/BookAPro';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
@@ -99,7 +100,8 @@ const App = () => {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/About" element={<About />} />
+          <Route path="/About-Us" element={<About />} />
+          <Route path="/Contact-Us" element={<ContactUs />} />
           <Route path="/ForgotPassword" element={<ForgotPassword />} />
           <Route path="/ResetPassword/:token" element={<ResetPassword />} />
 
