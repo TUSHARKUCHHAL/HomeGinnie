@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../../App';
 
 const ShopRegistrationForm = () => {
   // State management for form data
@@ -24,20 +26,38 @@ const ShopRegistrationForm = () => {
     establishedDate: '',
     logo: null,
     businessHours: {
-      monday: { open: '', close: '' },
-      tuesday: { open: '', close: '' },
-      wednesday: { open: '', close: '' },
-      thursday: { open: '', close: '' },
-      friday: { open: '', close: '' },
-      saturday: { open: '', close: '' },
+      monday: { open: '09:00', close: '18:00' },
+      tuesday: { open: '09:00', close: '18:00' },
+      wednesday: { open: '09:00', close: '18:00' },
+      thursday: { open: '09:00', close: '18:00' },
+      friday: { open: '09:00', close: '18:00' },
+      saturday: { open: '09:00', close: '18:00' },
       sunday: { open: '', close: '' },
     },
   });
-
+  
+  // Form errors state
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(null);
+  
+  // Loading state
+  const { login } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(false);
+  
   // Form handling functions
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    
+    // Clear error for this field if it exists
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: null });
+    }
+    
+    // Clear API error when user makes changes
+    if (apiError) {
+      setApiError(null);
+    }
   };
 
   const handleNestedChange = (category, field, value) => {
@@ -48,6 +68,12 @@ const ShopRegistrationForm = () => {
         [field]: value,
       },
     });
+    
+    // Clear error for this field if it exists
+    const errorKey = `${category}.${field}`;
+    if (errors[errorKey]) {
+      setErrors({ ...errors, [errorKey]: null });
+    }
   };
 
   const handleBusinessHoursChange = (day, timeType, value) => {
@@ -62,22 +88,252 @@ const ShopRegistrationForm = () => {
       },
     });
   };
+  
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      // Check file type
+      const fileType = e.target.files[0].type;
+      if (!fileType.startsWith('image/')) {
+        setErrors({ ...errors, logo: 'Please upload only image files' });
+        e.target.value = '';
+        return;
+      }
+      
+      // Check file size (5MB max)
+      if (e.target.files[0].size > 5 * 1024 * 1024) {
+        setErrors({ ...errors, logo: 'File size should be less than 5MB' });
+        e.target.value = '';
+        return;
+      }
+      
+      setFormData({ ...formData, logo: e.target.files[0] });
+      setErrors({ ...errors, logo: null });
+    }
+  };
 
-  const handleSubmit = (e) => {
+  const validateStep = (currentStep) => {
+    let stepErrors = {};
+    let isValid = true;
+    
+    if (currentStep === 1) {
+      // Validate personal information
+      if (!formData.firstName.trim()) {
+        stepErrors.firstName = 'First name is required';
+        isValid = false;
+      }
+      
+      if (!formData.lastName.trim()) {
+        stepErrors.lastName = 'Last name is required';
+        isValid = false;
+      }
+      
+      if (!formData.email.trim()) {
+        stepErrors.email = 'Email is required';
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        stepErrors.email = 'Email is invalid';
+        isValid = false;
+      }
+      
+      if (!formData.phoneNumber.trim()) {
+        stepErrors.phoneNumber = 'Phone number is required';
+        isValid = false;
+      } else if (!/^(\+\d{1,3}[- ]?)?\d{10}$/.test(formData.phoneNumber.replace(/\s+/g, ''))) {
+        stepErrors.phoneNumber = 'Phone number is invalid';
+        isValid = false;
+      }
+      
+      if (!formData.password) {
+        stepErrors.password = 'Password is required';
+        isValid = false;
+      } else if (formData.password.length < 8) {
+        stepErrors.password = 'Password must be at least 8 characters';
+        isValid = false;
+      } else if (!/\d/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password)) {
+        stepErrors.password = 'Password must contain at least one number, one lowercase and one uppercase letter';
+        isValid = false;
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        stepErrors.confirmPassword = 'Passwords do not match';
+        isValid = false;
+      }
+    } else if (currentStep === 2) {
+      // Validate address
+      if (!formData.address.street.trim()) {
+        stepErrors['address.street'] = 'Street address is required';
+        isValid = false;
+      }
+      
+      if (!formData.address.city.trim()) {
+        stepErrors['address.city'] = 'City is required';
+        isValid = false;
+      }
+      
+      if (!formData.address.state.trim()) {
+        stepErrors['address.state'] = 'State is required';
+        isValid = false;
+      }
+      
+      if (!formData.address.postalCode.trim()) {
+        stepErrors['address.postalCode'] = 'Postal code is required';
+        isValid = false;
+      } else if (!/^\d{6}$/.test(formData.address.postalCode.trim())) {
+        stepErrors['address.postalCode'] = 'Postal code must be 6 digits';
+        isValid = false;
+      }
+    } else if (currentStep === 3) {
+      // Validate shop details
+      if (!formData.shopType) {
+        stepErrors.shopType = 'Shop type is required';
+        isValid = false;
+      }
+      
+      if (formData.gstNumber && !/\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/.test(formData.gstNumber)) {
+        stepErrors.gstNumber = 'Invalid GST number format';
+        isValid = false;
+      }
+    } else if (currentStep === 4) {
+      // Validate business hours
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      
+      for (const day of days) {
+        const open = formData.businessHours[day].open;
+        const close = formData.businessHours[day].close;
+        
+        // Skip validation if both fields are empty (closed day)
+        if (!open && !close) continue;
+        
+        // Check if one time is set but the other isn't
+        if ((open && !close) || (!open && close)) {
+          stepErrors[`businessHours.${day}`] = `Both opening and closing times must be set for ${day}`;
+          isValid = false;
+        }
+        
+        // Check if closing time is after opening time
+        if (open && close && open >= close) {
+          stepErrors[`businessHours.${day}`] = `Closing time must be after opening time for ${day}`;
+          isValid = false;
+        }
+      }
+    }
+    
+    setErrors(stepErrors);
+    return isValid;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Form submission logic would go here
-    console.log('Form submitted with data:', formData);
+    
+    // Final validation check
+    if (!validateStep(step)) {
+      return;
+    }
+    
+    setIsLoading(true);
+    setApiError(null);
+    
+    try {
+      // Create FormData object to handle file upload
+      const formDataToSend = new FormData();
+      
+      // Create shop owner data object
+      const shopOwnerData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        phoneNumber: formData.phoneNumber,
+        alternateNumber: formData.alternateNumber || '',
+        address: formData.address,
+        shopDetails: {
+          gstNumber: formData.gstNumber || '',
+          shopType: formData.shopType,
+          deliveryProvided: formData.deliveryProvided,
+          establishedDate: formData.establishedDate || new Date().toISOString().split('T')[0],
+          businessHours: formData.businessHours
+        }
+      };
+      
+      // Add JSON data to FormData
+      formDataToSend.append('data', JSON.stringify(shopOwnerData));
+      
+      // Add logo file if it exists
+      if (formData.logo) {
+        formDataToSend.append('logo', formData.logo);
+      }
+      
+      // Send API request
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/shops/register`, 
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      
+      // Use AuthContext login function with the token from response
+      if (response.data && response.data.token) {
+        login(response.data.token, response.data.role || 'shop-owner', true);
+        
+        // Show success message and redirect
+        alert('Registration successful! Redirecting to dashboard...');
+        window.location.href = '/shop-owner-dashboard';
+      } else {
+        throw new Error('Invalid response from server');
+      }
+      
+    } catch (error) {
+      console.error('Shop registration error:', error);
+      
+      // Handle different types of errors
+      if (error.response?.data?.errors) {
+        // Handle validation errors from express-validator
+        const validationErrors = {};
+        error.response.data.errors.forEach(err => {
+          validationErrors[err.param] = err.msg;
+        });
+        setErrors(validationErrors);
+      } else if (error.response?.data?.message) {
+        // Handle specific error message from the server
+        setApiError(error.response.data.message);
+      } else if (error.response?.status === 409) {
+        // Handle conflict error (email already exists)
+        setApiError('A user with this email already exists');
+      } else if (error.response?.status === 500) {
+        // Handle server error
+        setApiError('Server error. Please try again later.');
+      } else {
+        // Display general error message
+        setApiError('Registration failed. Please check your information and try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const nextStep = () => {
-    setStep(step + 1);
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
   };
 
   const prevStep = () => {
     setStep(step - 1);
   };
 
+  // Error display helper
+  const renderError = (fieldName) => {
+    return errors[fieldName] ? (
+      <p className="text-red-500 text-xs mt-1">{errors[fieldName]}</p>
+    ) : null;
+  };
+
   return (
+    
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="max-w-2xl mx-auto px-4">
         <h1 className="text-3xl text-slate-900 font-bold text-center mb-2 mt-20">Join as a Shop Owner</h1>
@@ -98,6 +354,14 @@ const ShopRegistrationForm = () => {
             ></div>
           </div>
         </div>
+
+        {/* API error display */}
+        {apiError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            <p className="font-medium">Registration Error</p>
+            <p className="text-sm">{apiError}</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-md p-6">
           {step === 1 && (
@@ -120,11 +384,12 @@ const ShopRegistrationForm = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 rounded-md p-2"
+                        className={`pl-10 w-full border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                         placeholder="John"
                         required
                       />
                     </div>
+                    {renderError('firstName')}
                   </div>
                   <div>
                     <label className="block mb-1 font-medium text-slate-700">
@@ -141,11 +406,12 @@ const ShopRegistrationForm = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 rounded-md p-2"
+                        className={`pl-10 w-full border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                         placeholder="Doe"
                         required
                       />
                     </div>
+                    {renderError('lastName')}
                   </div>
                 </div>
 
@@ -164,11 +430,12 @@ const ShopRegistrationForm = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 rounded-md p-2"
+                      className={`pl-10 w-full border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                       placeholder="you@example.com"
                       required
                     />
                   </div>
+                  {renderError('email')}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,11 +454,12 @@ const ShopRegistrationForm = () => {
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 rounded-md p-2"
+                        className={`pl-10 w-full border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                         placeholder="+91 9876543210"
                         required
                       />
                     </div>
+                    {renderError('phoneNumber')}
                   </div>
 
                   <div>
@@ -216,7 +484,7 @@ const ShopRegistrationForm = () => {
                   </div>
                 </div>
 
-                <div className="mb-4 ">
+                <div className="mb-4">
                   <div>
                     <label className="block mb-1 font-medium text-slate-700">
                       Password <span className="text-red-500">*</span>
@@ -232,25 +500,20 @@ const ShopRegistrationForm = () => {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 rounded-md p-2"
+                        className={`pl-10 w-full border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                         placeholder="••••••••"
                         required
                         minLength={8}
                       />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                      </div>
                     </div>
+                    {renderError('password')}
                     <p className="text-xs text-gray-500 mt-1">
                       Must be at least 8 characters long with a mix of uppercase, lowercase, numbers, and symbols
                     </p>
                   </div>
 
-                  <div classNamw="mb-4">
-                    <label className="block mt-4 mb-1 font-medium text-slate-700">
+                  <div className="mt-4">
+                    <label className="block mb-1 font-medium text-slate-700">
                       Confirm Password <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -264,17 +527,12 @@ const ShopRegistrationForm = () => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 rounded-md p-2"
+                        className={`pl-10 w-full border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                         placeholder="••••••••"
                         required
                       />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                      </div>
                     </div>
+                    {renderError('confirmPassword')}
                   </div>
                 </div>
               </div>
@@ -293,10 +551,11 @@ const ShopRegistrationForm = () => {
                     type="text"
                     value={formData.address.street}
                     onChange={(e) => handleNestedChange('address', 'street', e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-2"
+                    className={`w-full border ${errors['address.street'] ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                     placeholder="123 Main Street"
                     required
                   />
+                  {renderError('address.street')}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,10 +567,11 @@ const ShopRegistrationForm = () => {
                       type="text"
                       value={formData.address.city}
                       onChange={(e) => handleNestedChange('address', 'city', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md p-2"
+                      className={`w-full border ${errors['address.city'] ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                       placeholder="Mumbai"
                       required
                     />
+                    {renderError('address.city')}
                   </div>
 
                   <div>
@@ -322,10 +582,11 @@ const ShopRegistrationForm = () => {
                       type="text"
                       value={formData.address.state}
                       onChange={(e) => handleNestedChange('address', 'state', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md p-2"
+                      className={`w-full border ${errors['address.state'] ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                       placeholder="Maharashtra"
                       required
                     />
+                    {renderError('address.state')}
                   </div>
                 </div>
 
@@ -338,10 +599,11 @@ const ShopRegistrationForm = () => {
                       type="text"
                       value={formData.address.postalCode}
                       onChange={(e) => handleNestedChange('address', 'postalCode', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md p-2"
+                      className={`w-full border ${errors['address.postalCode'] ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                       placeholder="400001"
                       required
                     />
+                    {renderError('address.postalCode')}
                   </div>
 
                   <div>
@@ -352,7 +614,7 @@ const ShopRegistrationForm = () => {
                       type="text"
                       value={formData.address.country}
                       onChange={(e) => handleNestedChange('address', 'country', e.target.value)}
-                      className="w-full border border-gray-300 rounded-md p-2"
+                      className="w-full border border-gray-300 rounded-md p-2 bg-gray-100"
                       placeholder="India"
                       readOnly
                     />
@@ -374,7 +636,7 @@ const ShopRegistrationForm = () => {
                     name="shopType"
                     value={formData.shopType}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md p-2"
+                    className={`w-full border ${errors.shopType ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                     required
                   >
                     <option value="">Select shop type</option>
@@ -384,6 +646,7 @@ const ShopRegistrationForm = () => {
                     <option value="restaurant">Restaurant</option>
                     <option value="other">Other</option>
                   </select>
+                  {renderError('shopType')}
                 </div>
 
                 <div>
@@ -393,10 +656,14 @@ const ShopRegistrationForm = () => {
                   <input
                     type="file"
                     name="logo"
-                    onChange={(e) => setFormData({ ...formData, logo: e.target.files[0] })}
-                    className="w-full border border-gray-300 rounded-md p-2"
+                    onChange={handleFileChange}
+                    className={`w-full border ${errors.logo ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
                     accept="image/*"
                   />
+                  {renderError('logo')}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max file size: 5MB. Accepted formats: JPG, PNG, GIF
+                  </p>
                 </div>
 
                 <div>

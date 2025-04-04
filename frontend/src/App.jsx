@@ -1,17 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import './App.css';
+
+// Importing components and pages
 import Home from './Pages/Home';
+import About from './Pages/About';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
-import LoginPage from './Pages/Login';
-import SignUpPage from './Pages/SignUp';
-import ServiceProviderSignUp from './Pages/ServiceProviderSignUp';
-import ShopOwnerSignUp from './Pages/ShopOwnerSignUp';
+
+
+// Simple User Routes
+import LoginPage from './Pages/User/Login';
+import SignUpPage from './Pages/User/SignUp';
+import BookAPro from './Pages/User/BookAPro';
+import ForgotPassword from "./Pages/User/ResetPassword/ForgetPassword";
+import ResetPassword from "./Pages/User/ResetPassword/ResetPassword";
+
+// Service Provider Routes
+import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
+import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
+import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
+
+// Shop Owner Routes
+import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
+import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
+import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
+
+
 import ConfirmLogout from './Components/ConfirmLogout';
-import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
 import BookAPro from './Pages/BookAPro';
+
+import './App.css';
+
 
 // Create an AuthContext for robust state management
 const AuthContext = React.createContext({
@@ -80,11 +100,17 @@ const App = () => {
           {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/About" element={<About />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
+          <Route path="/ResetPassword/:token" element={<ResetPassword />} />
 
           {/* Auth routes - redirect to home if already logged in */}
           <Route
             path="/Login"
             element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <LoginPage />}
+          />
+          <Route
+            path="/ServiceProvider-Login"
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ServiceProviderLogin />}
           />
           <Route
             path="/SignUp"
@@ -96,7 +122,11 @@ const App = () => {
           />
           <Route
             path="/ShopOwner-SignUp"
-            element={isLoggedIn ? <Navigate to="/" replace /> : <ShopOwnerSignUp />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ShopOwnerSignUp />}
+          />
+          <Route
+            path="/ShopOwner-Login"
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ShopOwnerLogin />}
           />
 
           {/* Protected routes - only accessible when logged in */}
@@ -112,6 +142,30 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/service-provider-dashboard"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["service-provider", "admin"]}
+                userRole={userRole}
+              >
+                <ServiceProviderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shop-owner-dashboard"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["shop-owner", "admin"]}
+                userRole={userRole}
+              >
+                <ShopOwnerDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Logout Route - only accessible when logged in */}
           <Route
@@ -119,7 +173,7 @@ const App = () => {
             element={
                 <ProtectedRoute
                 isLoggedIn={isLoggedIn}
-                allowedRoles={["user", "admin"]}
+                allowedRoles={["user","shop-owner","service-provider", "admin"]}
                 userRole={userRole}
                  >
                  <ConfirmLogout />

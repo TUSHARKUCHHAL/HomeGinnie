@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const userRoutes = require('./Routes/User');
+const serviceProviderRoutes = require('./Routes/ServiceProvider');
+const shopRoutes = require('./Routes/Shops');
 
 // Load environment variables
 dotenv.config();
@@ -56,6 +58,8 @@ const errorHandler = (err, req, res, next) => {
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/service-providers', serviceProviderRoutes);
+app.use('/api/shops', shopRoutes);
 
 // Root route
 app.get('/', (req, res) => {
