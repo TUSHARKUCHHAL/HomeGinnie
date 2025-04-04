@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser, FaPhone, FaToolbox, FaStar, FaMapMarkerAlt, FaRegIdCard, FaExclamationCircle } from 'react-icons/fa';
 import { IoBusinessSharp } from 'react-icons/io5';
-import { href } from 'react-router-dom';
+import axios from 'axios';
+import { AuthContext } from '../App';
 
 // Animation styles - keep consistent with the existing theme
 const animationStyles = `
@@ -194,7 +195,7 @@ const ServiceProviderSignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [buttonPosition, setButtonPosition] = useState('fixed');
   const [bottomOffset, setBottomOffset] = useState('8');
-  
+  const { login } = useContext(AuthContext);
   // Track form completion percentage
   const completionPercentage = (currentStep / totalSteps) * 100;
   
@@ -387,21 +388,68 @@ const ServiceProviderSignUp = () => {
     window.scrollTo(0, 0);
   };
 
-  // Handle final submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ // Handle final submission
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (validateStep(currentStep)) {
+    setIsLoading(true);
     
-    if (validateStep(currentStep)) {
-      setIsLoading(true);
+    try {
+      // Prepare data for submission
+      const providerData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        phoneNumber: formData.phoneNumber,
+        alternateNumber: formData.alternateNumber,
+        address: {
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.postalCode
+        },
+        services: formData.selectedServices,
+        yearsOfExperience: formData.yearsOfExperience,
+        experienceDescription: formData.experienceDescription,
+        about: formData.about
+      };
       
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Provider sign up attempt with:', formData);
-        setIsLoading(false);
-        // Add your actual registration logic here
-      }, 1500);
+      // Send API request
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/service-providers/register`, 
+        providerData
+      );
+      
+      // Use AuthContext login function 
+      // Assuming you're using a context similar to the example
+      login(
+        response.data.token, 
+        response.data.role || 'service-provider', 
+        true // Pass true for rememberMe
+      );
+      
+      // Redirect to service provider dashboard
+      window.location.href = '/service-provider/dashboard';
+      
+    } catch (error) {
+      console.error(
+        'Registration error:', 
+        error.response?.data?.message || error.message
+      );
+      
+      // Update the errors state with the error message
+      setErrors({
+        ...errors,
+        submitError: error.response?.data?.message || 'Registration failed. Please try again.'
+      });
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }
+};
 
   // Render form based on current step
   const renderFormStep = () => {

@@ -12,6 +12,8 @@ import ConfirmLogout from './Components/ConfirmLogout';
 import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
 import Dashboard from './Pages/Dashboard';
+import ServiceProviderDashboard from './Pages/ServiceProviderDashboard';
+import ShopsDashboard from './Pages/ShopsDashboard';
 
 // Create an AuthContext for robust state management
 const AuthContext = React.createContext({
@@ -109,6 +111,30 @@ const App = () => {
                 userRole={userRole}
               >
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/service-provider-dashboard"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["service-provider", "admin"]}
+                userRole={userRole}
+              >
+                <ServiceProviderDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/shops-dashboard"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["shop-owner", "admin"]}
+                userRole={userRole}
+              >
+                <ShopsDashboard />
               </ProtectedRoute>
             }
           />
