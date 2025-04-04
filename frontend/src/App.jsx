@@ -4,17 +4,22 @@ import './App.css';
 import Home from './Pages/Home';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
+
 import LoginPage from './Pages/User/Login';
 import SignUpPage from './Pages/User/SignUp';
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
-import ServiceProviderSignUp from './Pages/ServiceProviderSignUp';
-import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp';
+import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
+import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
+import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
+
 import ConfirmLogout from './Components/ConfirmLogout';
 import About from './Pages/About';
 import ProtectedRoute from './Components/ProtectedRoute';
-import Dashboard from './Pages/User/Dashboard';
+
+
+import Dashboard from './Pages/User/BookAPro';
 import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
-import ShopsDashboard from './Pages/Shop/ShopsDashboard';
+import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
 
 
 // Create an AuthContext for robust state management
@@ -88,28 +93,32 @@ const App = () => {
           {/* Auth routes - redirect to home if already logged in */}
           <Route
             path="/Login"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <LoginPage />}
           />
           <Route
             path="/ServiceProvider-Login"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <ServiceProviderLogin />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ServiceProviderLogin />}
           />
           <Route
             path="/SignUp"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignUpPage />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <SignUpPage />}
           />
           <Route
             path="/ServiceProvider-SignUp"
-            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <ServiceProviderSignUp />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ServiceProviderSignUp />}
           />
           <Route
             path="/ShopOwner-SignUp"
-            element={isLoggedIn ? <Navigate to="/" replace /> : <ShopOwnerSignUp />}
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ShopOwnerSignUp />}
+          />
+          <Route
+            path="/ShopOwner-Login"
+            element={isLoggedIn ? <Navigate to="/book-a-pro" replace /> : <ShopOwnerLogin />}
           />
 
           {/* Protected routes - only accessible when logged in */}
           <Route
-            path="/dashboard"
+            path="/book-a-pro"
             element={
               <ProtectedRoute
                 isLoggedIn={isLoggedIn}
@@ -133,14 +142,14 @@ const App = () => {
             }
           />
           <Route
-            path="/shops-dashboard"
+            path="/shop-owner-dashboard"
             element={
               <ProtectedRoute
                 isLoggedIn={isLoggedIn}
                 allowedRoles={["shop-owner", "admin"]}
                 userRole={userRole}
               >
-                <ShopsDashboard />
+                <ShopOwnerDashboard />
               </ProtectedRoute>
             }
           />

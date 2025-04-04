@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { AuthContext } from '../App'; 
+import { AuthContext } from '../../App'; 
 import ProviderSelectionModal from './ProviderSelectionModal'; // Import the new modal component
 
 // Animation styles remain unchanged
@@ -184,7 +184,7 @@ const LoginPage = () => {
       }
       
       // Redirect to dashboard using React Router
-      navigate('/dashboard');
+      navigate('/book-a-pro');
       
     } catch (error) {
       console.error('Login error:', error.response?.data?.message || error.message);
@@ -230,7 +230,7 @@ const LoginPage = () => {
       setSuccess(userData.message || 'Google login successful');
       
       // Redirect to dashboard
-      navigate('/dashboard');
+      navigate('/book-a-pro');
       
     } catch (err) {
       console.error("Google login error:", err.response?.data || err.message);

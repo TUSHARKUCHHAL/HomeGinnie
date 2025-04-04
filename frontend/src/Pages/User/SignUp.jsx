@@ -309,7 +309,7 @@ const SignUpPage = () => {
       login(response.data.token, response.data.role || 'user', true); // Pass true for rememberMe
       
       // Redirect to dashboard
-      window.location.href = '/dashboard';
+      window.location.href = '/book-a-pro';
       
     } catch (error) {
       console.error('Registration error:', error);
@@ -377,7 +377,7 @@ const SignUpPage = () => {
       setSuccess(userData.message || 'Google login successful');
       
       // Redirect to dashboard
-      window.location.href = '/dashboard';
+      window.location.href = '/book-a-pro';
       
     } catch (err) {
       console.error("Google login error:", err);

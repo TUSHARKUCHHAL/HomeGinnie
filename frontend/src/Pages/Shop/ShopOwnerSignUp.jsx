@@ -281,7 +281,7 @@ const ShopRegistrationForm = () => {
         
         // Show success message and redirect
         alert('Registration successful! Redirecting to dashboard...');
-        window.location.href = '/shop-dashboard';
+        window.location.href = '/shop-owner-dashboard';
       } else {
         throw new Error('Invalid response from server');
       }

@@ -432,7 +432,7 @@ const handleSubmit = async (e) => {
       );
       
       // Redirect to service provider dashboard
-      window.location.href = '/service-provider/dashboard';
+      window.location.href = '/service-provider-dashboard';
       
     } catch (error) {
       console.error(

@@ -274,10 +274,10 @@ router.put('/profile', protect, async (req, res, next) => {
   }
 });
 
-// @route   GET /dashboard
+// @route   GET /book-a-pro
 // @desc    Get service provider dashboard data
 // @access  Private
-router.get('/dashboard', protect, async (req, res, next) => {
+router.get('/book-a-pro', protect, async (req, res, next) => {
   try {
     const serviceProvider = await ServiceProvider.findById(req.serviceProvider._id).select('-password');
     

@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children, isLoggedIn, allowedRoles, userRole }) => {
       // Specific redirect based on current role
       switch(userRole) {
         case 'user':
-          return <Navigate to="/dashboard" replace />;
+          return <Navigate to="/book-a-pro" replace />;
         case 'serviceProvider':
           return <Navigate to="/service-provide-dashboard" replace />;
         default:
