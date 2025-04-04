@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUser } from 'react-icons/fa';
+import axios from 'axios';
 
 // Create different animations for each blob
 const animationStyles = `
@@ -83,16 +84,42 @@ const SignUpPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Sign up attempt with:', { fullName, email, password, agreeTerms });
+    try {
+      // Extract first and last name from full name
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
+      // Create user data
+      const userData = {
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmPassword,
+        phoneNumber: '1234567890' // Add phone field to form later
+      };
+      
+      // Send API request
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/register`, userData);
+      
+      // Handle success
+      localStorage.setItem('userToken', response.data.token);
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+      
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+      
+    } catch (error) {
+      console.error('Registration error:', error.response?.data?.message || error.message);
+      alert(error.response?.data?.message || 'Registration failed');
+    } finally {
       setIsLoading(false);
-      // Add your actual registration logic here
-    }, 1000);
+    }
   };
 
   return (

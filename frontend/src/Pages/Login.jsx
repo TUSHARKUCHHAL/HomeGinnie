@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import axios from 'axios';
 
 // Create different animations for each blob
 const animationStyles = `
@@ -79,17 +80,42 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login attempt with:', { email, password, rememberMe });
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/login`, {
+        email,
+        password
+      });
+      
+      // Save token to localStorage if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('userToken', response.data.token);
+        localStorage.setItem('rememberMe', true);
+      } else {
+        // Use sessionStorage if not remembering
+        sessionStorage.setItem('userToken', response.data.token);
+
+      }
+      
+      // Store user info
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+      localStorage.setItem('userRole', "user");
+      
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+      
+    } catch (error) {
+      console.error('Login error:', error.response?.data?.message || error.message);
+      setError(error.response?.data?.message || 'Invalid email or password');
+    } finally {
       setIsLoading(false);
-      // Add your actual authentication logic here
-    }, 1000);
+    }
   };
 
   return (
@@ -114,6 +140,12 @@ const LoginPage = () => {
           </div>
           
           <div className="p-8">
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700">
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div>
@@ -185,7 +217,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-slate-600 hover:text-slate-800">
+                  <a href="/forgot-password" className="font-medium text-slate-600 hover:text-slate-800">
                     Forgot password?
                   </a>
                 </div>
