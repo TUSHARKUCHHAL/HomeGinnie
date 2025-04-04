@@ -1,4 +1,3 @@
-import { meta } from "@eslint/js";
 import { useState } from "react";
 
 const ForgotPassword = () => {
@@ -49,312 +48,218 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="forgot-password-container">
-      <div className="forgot-password-card">
-        <div className="card-header">
-          <h2>Reset Password</h2>
-          <p>Enter your email address and we'll send you a link to reset your password.</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-800 relative overflow-hidden">
+      {/* Enhanced Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="floating-shape bg-slate-100/70 blur-3xl w-96 h-96 rounded-full absolute -top-20 -left-20 animate-float-slow"></div>
+        <div className="floating-shape bg-slate-200/70 blur-3xl w-96 h-96 rounded-full absolute top-1/4 right-10 animate-float-medium"></div>
+        <div className="floating-shape bg-slate-100/70 blur-3xl w-80 h-80 rounded-full absolute bottom-10 left-1/4 animate-float-fast"></div>
+        <div className="floating-shape bg-slate-200/70 blur-3xl w-64 h-64 rounded-full absolute -bottom-10 -right-10 animate-float-slow"></div>
         
-        <form onSubmit={handleSubmit} className="forgot-password-form">
-          <div className="form-group">
-            <label htmlFor="email">Email address</label>
-            <div className="input-wrapper">
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                disabled={isLoading}
-                required
-                aria-describedby={error ? "error-message" : undefined}
-              />
-              <svg 
-                className="email-icon" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-              >
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <path d="M22 6l-10 7L2 6" />
-              </svg>
+        {/* Additional animated elements */}
+        <div className="particle bg-slate-300/30 w-2 h-2 rounded-full absolute top-1/4 left-1/3 animate-particle-1"></div>
+        <div className="particle bg-slate-300/30 w-3 h-3 rounded-full absolute top-1/2 left-2/3 animate-particle-2"></div>
+        <div className="particle bg-slate-300/30 w-2 h-2 rounded-full absolute bottom-1/4 left-1/4 animate-particle-3"></div>
+        <div className="particle bg-slate-300/30 w-4 h-4 rounded-full absolute bottom-1/3 right-1/4 animate-particle-4"></div>
+      </div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-white/95 to-gray-100/90 z-0"></div>
+
+      <div className="relative z-10 w-full max-w-md px-4">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 backdrop-blur-sm overflow-hidden transition-all duration-300 transform hover:shadow-xl hover:translate-y-[-4px]">
+          {/* Card Header with Visual Element */}
+          <div className="relative h-16 bg-gradient-to-r from-gray-50 to-gray-100 overflow-hidden">
+            <div className="absolute inset-0 flex justify-center">
+              <div className="w-full h-40 bg-gradient-to-b from-slate-200/30 to-transparent rounded-full transform translate-y-20 scale-[2]"></div>
+            </div>
+            <div className="absolute top-0 right-0 p-3">
+              <div className="h-2 w-2 rounded-full bg-slate-300 inline-block mr-1"></div>
+              <div className="h-2 w-2 rounded-full bg-slate-400 inline-block mr-1"></div>
+              <div className="h-2 w-2 rounded-full bg-slate-500 inline-block"></div>
             </div>
           </div>
-
-          {error && (
-            <div className="alert error" role="alert" id="error-message">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12" y2="16" />
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="alert success" role="alert">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-              {success}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading || !email}
-            className="submit-button"
-          >
-            {isLoading ? (
-              <>
-                <svg className="spinner" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="4" />
+          
+          <div className="p-8">
+            <div className="flex flex-col items-center mb-6">
+              <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-md">
+                <svg className="h-8 w-8 text-slate-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
-                <span>Sending...</span>
-              </>
-            ) : (
-              "Send Reset Link"
-            )}
-          </button>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Reset Password</h2>
+              <p className="text-gray-500 text-center text-sm">
+                Enter your email address and we'll send you a link to reset your password.
+              </p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700 flex items-center">
+                  <svg className="w-4 h-4 mr-1.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Email address
+                </label>
+                <div className="relative">
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    disabled={isLoading}
+                    required
+                    className="w-full bg-gray-50 text-gray-800 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent transition-all duration-300 placeholder:text-gray-400"
+                    aria-describedby={error ? "error-message" : undefined}
+                  />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-slate-200/20 via-slate-100/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                </div>
+              </div>
 
-          <div className="back-to-login">
-            <a href="/login">Return to login</a>
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-3 animate-fade-in" role="alert" id="error-message">
+                  <svg className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-red-600">{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-3 animate-fade-in" role="alert">
+                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-green-600">{success}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading || !email}
+                className="w-full relative overflow-hidden group bg-slate-900 text-white font-medium py-3 px-4 rounded-lg hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 focus:ring-offset-white disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-300"
+              >
+                <div className="absolute inset-0 w-3/12 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg] animate-shine"></div>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
+                </span>
+              </button>
+
+              <div className="text-center pt-2">
+                <a 
+                  href="/login" 
+                  className="text-slate-600 hover:text-slate-800 text-sm inline-flex items-center transition-colors duration-300"
+                >
+                  <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Return to login
+                </a>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
 
-      <style>{`
-       
-        .forgot-password-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1.5rem;
-          background-color: var(--bg-dark);
-          color: var(--text-primary);
-        }
-
-        .forgot-password-card {
-          width: 100%;
-          max-width: 28rem;
-          background: var(--card-bg);
-          border-radius: 0.75rem;
-          box-shadow: var(--card-shadow);
-          padding: 2.5rem;
-          border: 1px solid var(--border-color);
-          transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+      <style jsx>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(5px, -5px) rotate(1deg); }
+          50% { transform: translate(0, 10px) rotate(0deg); }
+          75% { transform: translate(-5px, -5px) rotate(-1deg); }
         }
         
-        .forgot-password-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        @keyframes float-medium {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(-10px, 10px) rotate(-1deg); }
+          50% { transform: translate(0, -15px) rotate(0deg); }
+          75% { transform: translate(10px, 5px) rotate(1deg); }
+        }
+        
+        @keyframes float-fast {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(15px, 15px) rotate(1deg); }
+          50% { transform: translate(0, -10px) rotate(0deg); }
+          75% { transform: translate(-15px, 10px) rotate(-1deg); }
         }
 
-        .card-header {
-          margin-bottom: 2rem;
-          text-align: center;
+        @keyframes shine {
+          0% { transform: translateX(-100%) skewX(-20deg); }
+          100% { transform: translateX(500%) skewX(-20deg); }
         }
 
-        .card-header h2 {
-          color: var(--text-primary);
-          font-size: 1.75rem;
-          font-weight: 600;
-          margin: 0 0 0.75rem 0;
-          letter-spacing: 0.5px;
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes particle-1 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+          50% { transform: translate(100px, -50px); opacity: 0.7; }
+        }
+        
+        @keyframes particle-2 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.5; }
+          50% { transform: translate(-70px, 70px); opacity: 0.2; }
+        }
+        
+        @keyframes particle-3 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+          33% { transform: translate(50px, 50px); opacity: 0.6; }
+          66% { transform: translate(80px, -30px); opacity: 0.2; }
+        }
+        
+        @keyframes particle-4 {
+          0%, 100% { transform: translate(0, 0); opacity: 0.2; }
+          25% { transform: translate(-30px, -50px); opacity: 0.5; }
+          75% { transform: translate(-60px, 30px); opacity: 0.7; }
         }
 
-        .card-header p {
-          color: var(--text-secondary);
-          margin: 0;
-          font-size: 0.95rem;
+        .animate-float-slow {
+          animation: float-slow 8s ease-in-out infinite;
+        }
+        
+        .animate-float-medium {
+          animation: float-medium 12s ease-in-out infinite;
+        }
+        
+        .animate-float-fast {
+          animation: float-fast 10s ease-in-out infinite;
         }
 
-        .forgot-password-form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
+        .animate-shine {
+          animation: shine 8s ease-in-out infinite;
         }
 
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
         }
-
-        .form-group label {
-          color: var(--text-primary);
-          font-weight: 500;
-          font-size: 0.9rem;
-          margin-left: 0.25rem;
+        
+        .animate-particle-1 {
+          animation: particle-1 15s ease-in-out infinite;
         }
-
-        .input-wrapper {
-          position: relative;
+        
+        .animate-particle-2 {
+          animation: particle-2 18s ease-in-out infinite;
         }
-
-        .input-wrapper input {
-          width: 100%;
-          padding: 0.875rem 1rem 0.875rem 2.75rem;
-          background-color: var(--input-bg);
-          border: 1px solid var(--border-color);
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          color: var(--text-primary);
-          transition: all var(--transition-speed);
+        
+        .animate-particle-3 {
+          animation: particle-3 20s ease-in-out infinite;
         }
-
-        .input-wrapper input:focus {
-          outline: none;
-          border-color: var(--accent-color);
-          box-shadow: 0 0 0 2px var(--accent-hover);
-        }
-
-        .input-wrapper input::placeholder {
-          color: var(--text-secondary);
-          opacity: 0.7;
-        }
-
-        .input-wrapper input:disabled {
-          background-color: rgba(26, 26, 26, 0.7);
-          color: var(--text-secondary);
-          cursor: not-allowed;
-        }
-
-        .email-icon {
-          position: absolute;
-          left: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 1.25rem;
-          height: 1.25rem;
-          color: var(--accent-color);
-        }
-
-        .alert {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .alert svg {
-          width: 1.25rem;
-          height: 1.25rem;
-          flex-shrink: 0;
-        }
-
-        .alert.error {
-          background-color: rgba(239, 68, 68, 0.1);
-          color: var(--error-color);
-          border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .alert.success {
-          background-color: rgba(16, 185, 129, 0.1);
-          color: var(--success-color);
-          border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .submit-button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          width: 100%;
-          padding: 0.875rem 1.5rem;
-          background-color: var(--accent-color);
-          color: white;
-          border: none;
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all var(--transition-speed);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .submit-button:before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-          transform: translateX(-100%);
-          transition: transform 0.6s;
-        }
-
-        .submit-button:hover:not(:disabled):before {
-          transform: translateX(100%);
-        }
-
-        .submit-button:hover:not(:disabled) {
-          background-color: rgba(52, 152, 219, 0.9);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px var(--glow-color);
-        }
-
-        .submit-button:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .submit-button:disabled {
-          background-color: var(--bg-dark-lighter);
-          color: var(--text-secondary);
-          cursor: not-allowed;
-        }
-
-        .spinner {
-          width: 1.25rem;
-          height: 1.25rem;
-          animation: spin 1.2s linear infinite;
-          stroke: currentColor;
-          stroke-dasharray: 60, 180;
-        }
-
-        .back-to-login {
-          text-align: center;
-          margin-top: 0.5rem;
-        }
-
-        .back-to-login a {
-          color: var(--accent-color);
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color var(--transition-speed);
-        }
-
-        .back-to-login a:hover {
-          color: var(--text-primary);
-          text-decoration: underline;
-        }
-
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-
-        @media (max-width: 640px) {
-          .forgot-password-card {
-            padding: 2rem 1.5rem;
-          }
-          
-          .card-header h2 {
-            font-size: 1.5rem;
-          }
+        
+        .animate-particle-4 {
+          animation: particle-4 12s ease-in-out infinite;
         }
       `}</style>
     </div>
