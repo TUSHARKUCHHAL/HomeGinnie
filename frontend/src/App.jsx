@@ -28,6 +28,7 @@ import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
 
 import ConfirmLogout from './Components/ConfirmLogout';
 import ProtectedRoute from './Components/ProtectedRoute';
+import BookAPro from './Pages/BookAPro';
 
 import './App.css';
 

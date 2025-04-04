@@ -146,15 +146,23 @@ const LoginPage = () => {
       }
     };
 
-    // Add scroll event listener
+    // Function to check if device is mobile
+    const checkMobileView = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    // Add event listeners
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', checkMobileView);
     
-    // Initial check
+    // Initial checks
     handleScroll();
+    checkMobileView();
     
     // Cleanup
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', checkMobileView);
     };
   }, []);
   
@@ -240,6 +248,19 @@ const LoginPage = () => {
     }
   };
 
+  // Classes for the provider button based on mobile view
+  const providerButtonClasses = isMobile
+    ? "bg-slate-900 text-white font-medium py-2 px-3 text-sm rounded-full shadow-lg transition-colors animate-float flex items-center hover:text-glow"
+    : "bg-slate-900 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-colors animate-float flex items-center hover:text-glow";
+
+  // Dynamic positioning for the provider button
+  const providerButtonStyles = {
+    position: buttonPosition,
+    bottom: isMobile ? '4px' : `${bottomOffset}px`,
+    right: isMobile ? '8px' : '32px',
+    zIndex: 10
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 overflow-hidden relative login-container">
       {/* Insert the style tag in the JSX */}
@@ -258,24 +279,19 @@ const LoginPage = () => {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-slate-100 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob-3"></div>
       </div>
       
-      {/* Service Provider Button - Position dynamically changes */}
+      {/* Service Provider Button - Responsive design */}
       <div 
-        style={{ 
-          position: buttonPosition, 
-          bottom: `${bottomOffset}px`, 
-          right: '32px',
-          zIndex: 10
-        }}
+        style={providerButtonStyles}
         className="service-provider-button"
       >
         <button
           onClick={handleServiceProviderLogin}
-          className="bg-slate-900 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-colors animate-float flex items-center hover:text-glow"
+          className={providerButtonClasses}
         >
-          <span>Continue as Provider</span>
+          {isMobile ? "Provider" : "Continue as Provider"}
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-4 w-4 ml-2" 
+            className={isMobile ? "h-3 w-3 ml-1" : "h-4 w-4 ml-2"} 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
