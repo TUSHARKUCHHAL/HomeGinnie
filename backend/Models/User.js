@@ -54,17 +54,19 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password should be at least 8 characters long']
+    required: [false, 'Password is required'],
   },
   avatar: {
     type: String,
     default: 'default-avatar.png'
   },
+  googleId: {
+    type: String,
+    sparse: true
+  },
   phoneNumber: {
     type: String,
-    required: [true, 'Phone number is required'],
-    trim: true
+    trim: true,
   },
   alternateNumber: {
     type: String,
@@ -118,19 +120,5 @@ const userSchema = new Schema({
   timestamps: true
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  try {
-    // You would typically use bcrypt here
-    // const salt = await bcrypt.genSalt(10);
-    // this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
 const User = mongoose.model('User', userSchema);
-
 module.exports = User;

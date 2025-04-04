@@ -5,6 +5,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const User = require('../Models/User');
+const { OAuth2Client } = require('google-auth-library');
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
 
 // Auth middleware
 const protect = async (req, res, next) => {
@@ -70,7 +77,7 @@ router.post('/register', validateRegistration, async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { firstName, lastName, email, password, phoneNumber } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -89,7 +96,6 @@ router.post('/register', validateRegistration, async (req, res, next) => {
       lastName,
       email,
       password: hashedPassword,
-      phoneNumber
     });
 
     if (user) {
@@ -135,6 +141,67 @@ router.post('/login', async (req, res, next) => {
     next(error);
   }
 });
+
+
+router.post("/auth/google", async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    
+    if (!token) {
+      res.status(400);
+      throw new Error('Google token is required');
+    }
+
+    // Verify Google token
+    const ticket = await client.verifyIdToken({ 
+      idToken: token, 
+      audience: GOOGLE_CLIENT_ID 
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, sub: googleId, name, picture } = payload;
+    
+    // Check if user exists
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      // Better name handling
+      const nameParts = name.split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
+      // Create new user if not exists
+      user = new User({
+        firstName,
+        lastName,
+        email,
+        googleId,
+        // Generate a random secure password for OAuth users
+        password:" ",
+        avatar: picture || 'default-avatar.png'
+      });
+      
+      await user.save();
+    } else if (!user.googleId) {
+      // Link Google ID to existing account if not already linked
+      user.googleId = googleId;
+      await user.save();
+    }
+    
+    // Generate JWT token using the existing function for consistency
+    res.json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+  
+  
 
 // @route   GET /profile
 // @desc    Get user profile
