@@ -83,15 +83,15 @@ const App = () => {
           {/* Auth routes - redirect to home if already logged in */}
           <Route
             path="/Login"
-            element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage />}
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />}
           />
           <Route
             path="/SignUp"
-            element={isLoggedIn ? <Navigate to="/" replace /> : <SignUpPage />}
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <SignUpPage />}
           />
           <Route
             path="/ServiceProvider-SignUp"
-            element={isLoggedIn ? <Navigate to="/" replace /> : <ServiceProviderSignUp />}
+            element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <ServiceProviderSignUp />}
           />
 
           {/* Protected routes - only accessible when logged in */}
@@ -112,7 +112,13 @@ const App = () => {
           <Route
             path="/logout"
             element={
-                <ConfirmLogout />  // No need to pass handleLogout prop anymore
+                <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["user", "admin"]}
+                userRole={userRole}
+                 >
+                 <ConfirmLogout />
+                 </ProtectedRoute>
               
             }
           />
