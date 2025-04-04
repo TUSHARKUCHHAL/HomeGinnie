@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import axios from 'axios';
-import { AuthContext } from '../../App'; 
-import ProviderSelectionModal from '../ServiceProvider/ProviderSelectionModal'; // Import the new modal component
+import { AuthContext } from '../App'; 
+import ProviderSelectionModal from './ServiceProvider/ProviderSelectionModal'; // Import the new modal component
 
 // Animation styles remain unchanged
 const animationStyles = `
