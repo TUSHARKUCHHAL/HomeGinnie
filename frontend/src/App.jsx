@@ -23,16 +23,16 @@ import RequestResponse from "./Pages/BookAPro/RequestResponse";
 // Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
-
-// Find a job Routes
-import FindJob from './Pages/FindJob/FindJob';
 import ServiceProviderForgetPassword from "./Pages/ServiceProvider/ResetPassword/ForgetPassword";
 import ServiceProviderResetPassword from "./Pages/ServiceProvider/ResetPassword/ResetPassword";
+
+// Find a job Routes
+import FindJob from './Pages/Dashboard/FindJob/FindJob';
+
 
 // Shop Owner Routes
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
 import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
-import ShopOwnerDashboard from './Pages/Dashboards/ShopOwnerDashboard';
 import ShopOwnerForgetPassword from "./Pages/Shop/ResetPassword/ForgetPassword";
 import ShopOwnerResetPassword from "./Pages/Shop/ResetPassword/ResetPassword";
 
@@ -191,18 +191,6 @@ const App = () => {
                 userRole={userRole}
               >
                 <FindJob />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/shop-owner-dashboard"
-            element={
-              <ProtectedRoute
-                isLoggedIn={isLoggedIn}
-                allowedRoles={["shop-owner", "admin"]}
-                userRole={userRole}
-              >
-                <ShopOwnerDashboard />
               </ProtectedRoute>
             }
           />
