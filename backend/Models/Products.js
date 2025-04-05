@@ -17,6 +17,12 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Product image is required']
   },
+  category: {
+    type: String,
+    required: [true, 'Product category is required'],
+    enum: ['electronics', 'fashion', 'home', 'kitchen', 'beauty', 'toys', 'sports'],
+    default: 'electronics'
+  },
   rating: {
     value: {
       type: Number,

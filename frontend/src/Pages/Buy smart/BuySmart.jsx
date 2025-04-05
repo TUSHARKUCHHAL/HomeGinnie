@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Grid, List, Filter, ShoppingCart, Star, Clock, Truck, Tag, ChevronDown, ChevronUp, X, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProductService from './ProductService'
 
 const BuySmart = () => {
   // States
@@ -16,13 +17,14 @@ const BuySmart = () => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [compareMode, setCompareMode] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [error, setError] = useState(null);
 
   // Categories
   const categories = [
     'all', 'electronics', 'fashion', 'home', 'kitchen', 'beauty', 'toys', 'sports'
   ];
 
-  // Mock platforms
+  // Platforms
   const platforms = [
     { name: 'Amazon', color: '#FF9900' },
     { name: 'Flipkart', color: '#2874F0' },
@@ -32,47 +34,29 @@ const BuySmart = () => {
     { name: 'Instamart', color: '#FC7D03' }
   ];
 
-  // Mock data - would be fetched from API in real app
+  // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
-      // Simulate API call
-      setIsLoading(true);
-      
-      // Generate mock data
-      const mockProducts = Array(24).fill().map((_, idx) => {
-        const id = idx + 1;
-        const name = `${['Premium', 'Ultra', 'Essential', 'Smart', 'Pro'][Math.floor(Math.random() * 5)]} ${
-          ['Headphones', 'Smartphone', 'Laptop', 'Watch', 'TV', 'Camera', 'Speaker', 'Tablet'][Math.floor(Math.random() * 8)]
-        }`;
+      try {
+        setIsLoading(true);
+        setError(null);
         
-        const category = ['electronics', 'fashion', 'home', 'kitchen', 'beauty', 'toys', 'sports'][Math.floor(Math.random() * 7)];
-        const basePrice = Math.floor(Math.random() * 90000) + 1000;
+        // Get products from the API
+        const backendProducts = await ProductService.getProducts();
         
-        return {
-          id,
-          name,
-          category,
-          image: `/api/placeholder/200/200`, // Placeholder image
-          description: `High-quality ${name.toLowerCase()} with the latest features and exceptional performance.`,
-          basePrice,
-          ratings: (Math.random() * 2 + 3).toFixed(1), // 3-5 rating
-          reviewCount: Math.floor(Math.random() * 1000) + 50,
-          platforms: platforms.map(platform => ({
-            name: platform.name,
-            price: Math.floor(basePrice * (0.9 + Math.random() * 0.2)), // +/- 10% from base price
-            inStock: Math.random() > 0.2,
-            discount: Math.floor(Math.random() * 20),
-            deliveryDays: Math.floor(Math.random() * 5) + 1,
-            color: platform.color
-          }))
-        };
-      });
-      
-      setTimeout(() => {
-        setProducts(mockProducts);
-        setFilteredProducts(mockProducts);
+        // Transform backend products to match frontend structure
+        const formattedProducts = backendProducts.map(product => 
+          ProductService.formatProductForFrontend(product)
+        );
+        
+        setProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
         setIsLoading(false);
-      }, 800); // Simulate loading delay
+      }
     };
     
     fetchProducts();
@@ -139,6 +123,33 @@ const BuySmart = () => {
     }
   };
 
+  // Handle product rating update
+  const handleRateProduct = async (productId, rating) => {
+    try {
+      await ProductService.updateRating(productId, rating);
+      
+      // Update the product rating in state
+      const updatedProducts = products.map(product => {
+        if (product.id === productId) {
+          // We would ideally get the new rating from the API response
+          // But for now we'll just do a simple update
+          const newRatingValue = parseFloat(product.ratings);
+          const newRatingCount = product.reviewCount + 1;
+          return {
+            ...product,
+            ratings: ((newRatingValue * product.reviewCount + rating) / newRatingCount).toFixed(1),
+            reviewCount: newRatingCount
+          };
+        }
+        return product;
+      });
+      
+      setProducts(updatedProducts);
+    } catch (error) {
+      console.error('Failed to update product rating:', error);
+    }
+  };
+
   // Get the best price platform for a product
   const getBestPricePlatform = (product) => {
     return product.platforms.reduce((best, current) => 
@@ -170,7 +181,7 @@ const BuySmart = () => {
     
     return (
       <motion.div 
-        className={`bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg ${
+        className={`bg-white rounded-xl shadow-sm overflow-hidden mt-8 transition-all duration-300 hover:shadow-lg ${
           viewMode === 'grid' ? 'w-full' : 'flex'
         } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
         initial={{ opacity: 0, y: 20 }}
@@ -257,33 +268,47 @@ const BuySmart = () => {
         className="bg-white p-6 rounded-xl shadow-lg"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.3 }}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">Product Comparison</h2>
-          <motion.button 
-            onClick={() => setCompareMode(false)}
-            className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full"
+          <div className="flex items-center">
+            <motion.button
+              onClick={() => setCompareMode(false)}
+              className="mr-3 p-2 rounded-full bg-slate-100 hover:bg-slate-200"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <ArrowLeft size={20} />
+            </motion.button>
+            <h2 className="text-xl font-semibold text-slate-800">Compare Products</h2>
+          </div>
+          <motion.button
+            onClick={() => setSelectedProducts([])}
+            className="text-sm text-red-500 hover:text-red-700"
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
-            <ArrowLeft size={16} className="mr-2" />
-            Back to Shopping
+            Clear All
           </motion.button>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="p-4 text-left bg-slate-50 rounded-l-lg">Details</th>
-                {selectedProductsData.map((product, index) => (
-                  <th key={product.id} className={`p-4 text-center bg-slate-50 ${index === selectedProductsData.length - 1 ? 'rounded-r-lg' : ''}`}>
+                <th className="text-left p-4 border-b"></th>
+                {selectedProductsData.map(product => (
+                  <th key={product.id} className="p-4 border-b">
                     <div className="flex flex-col items-center">
-                      <div className="bg-white p-2 rounded-lg shadow-sm mb-2">
-                        <img src={product.image} alt={product.name} className="w-24 h-24 object-contain" />
-                      </div>
-                      <span className="font-semibold">{product.name}</span>
+                      <img src={product.image} alt={product.name} className="h-24 w-24 object-contain mb-2" />
+                      <h3 className="text-sm font-medium text-center">{product.name}</h3>
+                      <motion.button 
+                        onClick={() => toggleProductSelection(product.id)}
+                        className="mt-2 p-1 rounded-full bg-red-50 hover:bg-red-100 text-red-500"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <X size={16} />
+                      </motion.button>
                     </div>
                   </th>
                 ))}
@@ -291,65 +316,99 @@ const BuySmart = () => {
             </thead>
             <tbody>
               <tr>
-                <td className="py-4 px-4 font-medium">Rating</td>
+                <td className="p-4 border-b font-medium">Price Range</td>
                 {selectedProductsData.map(product => (
-                  <td key={product.id} className="py-4 px-4 text-center">
-                    <div className="flex items-center justify-center">
-                      <Star size={16} className="text-yellow-500" />
-                      <span className="ml-1">{product.ratings}</span>
-                      <span className="text-xs text-slate-500 ml-1">({product.reviewCount})</span>
+                  <td key={product.id} className="p-4 border-b text-center">
+                    <div className="font-semibold text-slate-800">
+                      {formatPrice(Math.min(...product.platforms.map(p => p.price)))} - {formatPrice(Math.max(...product.platforms.map(p => p.price)))}
                     </div>
                   </td>
                 ))}
               </tr>
-              
-              {platforms.map((platform, idx) => (
-                <tr key={platform.name} className={idx % 2 === 0 ? 'bg-slate-50' : ''}>
-                  <td className="py-4 px-4 font-medium">
-                    <div className="flex items-center">
-                      <div className="w-3-h-3 w-3 h-3 rounded-full mr-2" style={{ backgroundColor: platform.color }}></div>
-                      {platform.name}
-                    </div>
-                  </td>
-                  {selectedProductsData.map(product => {
-                    const platformData = product.platforms.find(p => p.name === platform.name);
-                    return (
-                      <td key={`${product.id}-${platform.name}`} className="py-4 px-4 text-center">
-                        {platformData.inStock ? (
-                          <div>
-                            <div className="font-bold">{formatPrice(platformData.price)}</div>
-                            <div className="flex justify-center items-center mt-1">
-                              <Clock size={14} className="text-slate-500" />
-                              <span className="text-xs ml-1">{platformData.deliveryDays} day{platformData.deliveryDays > 1 ? 's' : ''}</span>
-                            </div>
-                            {platformData.discount > 0 && (
-                              <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-green-50 rounded-full text-green-600">
-                                {platformData.discount}% off
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-red-500">Out of stock</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-              
-              <tr className="bg-blue-50">
-                <td className="py-4 px-4 font-medium text-blue-700">Best Deal</td>
+              <tr>
+                <td className="p-4 border-b font-medium">Best Price</td>
                 {selectedProductsData.map(product => {
-                  const bestPlatform = getBestPricePlatform(product);
+                  const bestPrice = getBestPricePlatform(product);
                   return (
-                    <td key={`${product.id}-best`} className="py-4 px-4 text-center">
-                      <div className="font-bold text-blue-700">{formatPrice(bestPlatform.price)}</div>
-                      <div className="text-xs mt-1 inline-block px-2 py-1 bg-white rounded-full shadow-sm">
-                        {bestPlatform.name}
+                    <td key={product.id} className="p-4 border-b text-center">
+                      <div className="font-semibold text-slate-800">{formatPrice(bestPrice.price)}</div>
+                      <div className="text-xs px-2 py-0.5 bg-blue-50 rounded-full text-blue-600 inline-block">
+                        {bestPrice.name}
                       </div>
                     </td>
                   );
                 })}
+              </tr>
+              <tr>
+                <td className="p-4 border-b font-medium">Rating</td>
+                {selectedProductsData.map(product => (
+                  <td key={product.id} className="p-4 border-b text-center">
+                    <div className="flex items-center justify-center">
+                      <Star size={16} className="text-yellow-500" />
+                      <span className="ml-1 font-medium">{product.ratings}</span>
+                    </div>
+                    <span className="text-xs text-slate-500">({product.reviewCount} reviews)</span>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="p-4 border-b font-medium">Fastest Delivery</td>
+                {selectedProductsData.map(product => {
+                  const fastestDelivery = getFastestDeliveryPlatform(product);
+                  return (
+                    <td key={product.id} className="p-4 border-b text-center">
+                      <div className="font-medium">{fastestDelivery.deliveryDays} day{fastestDelivery.deliveryDays > 1 ? 's' : ''}</div>
+                      <div className="text-xs px-2 py-0.5 bg-green-50 rounded-full text-green-600 inline-block">
+                        {fastestDelivery.name}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr>
+                <td className="p-4 border-b font-medium">Description</td>
+                {selectedProductsData.map(product => (
+                  <td key={product.id} className="p-4 border-b text-center">
+                    <p className="text-sm text-slate-600">{product.description}</p>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="p-4 border-b font-medium">Available On</td>
+                {selectedProductsData.map(product => (
+                  <td key={product.id} className="p-4 border-b">
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {product.platforms.map(platform => (
+                        <span 
+                          key={platform.name} 
+                          className="text-xs px-2 py-1 rounded-full text-white"
+                          style={{ backgroundColor: platforms.find(p => p.name === platform.name)?.color || '#333' }}
+                        >
+                          {platform.name}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td className="p-4 font-medium">Actions</td>
+                {selectedProductsData.map(product => (
+                  <td key={product.id} className="p-4 text-center">
+                    <motion.button
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        // Logic to handle the "Best Buy" action
+                        const bestPlatform = getBestPricePlatform(product);
+                        alert(`Redirecting to buy ${product.name} from ${bestPlatform.name} at ${formatPrice(bestPlatform.price)}`);
+                      }}
+                    >
+                      Best Buy
+                    </motion.button>
+                  </td>
+                ))}
               </tr>
             </tbody>
           </table>
@@ -358,222 +417,225 @@ const BuySmart = () => {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      {/* Header */}
-    <div>
-        <div className="container mx-auto max-w-6xl ">
-          <div className="flex flex-col md:flex-row justify-between items-center ">
-        
-            {/* SEARCH BAR */}
-            
+  // Instructions Modal
+  const Instructions = () => (
+    <motion.div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-white p-6 rounded-xl shadow-xl max-w-md"
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.9 }}
+      >
+        <h2 className="text-xl font-semibold text-slate-800 mb-4">Welcome to BuySmart!</h2>
+        <div className="space-y-3 text-slate-600">
+          <p>BuySmart helps you find the best deals across multiple shopping platforms.</p>
+          <div className="flex items-start">
+            <ShoppingCart size={18} className="text-blue-500 mt-1 mr-2" />
+            <p>Select up to 3 products to compare prices and delivery options.</p>
+          </div>
+          <div className="flex items-start">
+            <Filter size={18} className="text-blue-500 mt-1 mr-2" />
+            <p>Use filters to narrow down products by category, price range, and more.</p>
+          </div>
+          <div className="flex items-start">
+            <Tag size={18} className="text-blue-500 mt-1 mr-2" />
+            <p>We highlight the best prices and fastest delivery options for each product.</p>
           </div>
         </div>
-    </div>
-      
-      {/* Main Content */}
-      <main className="container mx-auto max-w-6xl px-4 pb-8">
-        {compareMode ? (
-          <ComparisonView />
-        ) : (
-          <>
-            
+        <motion.button
+          onClick={() => setShowInstructions(false)}
+          className="mt-6 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Get Started
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
 
-            <div className="w-full md:w-1/2 lg:w-1.5/3 relative mb-8 ml-auto mt-28">
-              <motion.div 
-                className="relative"
-                initial={{ width: '100%' }}
-                whileFocus={{ scale: 1.02 }}
+  // Main UI
+  return (
+    <div className="bg-slate-50 min-h-screen">
+      <AnimatePresence>
+        {showInstructions && <Instructions />}
+      </AnimatePresence>
+      
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto py-4 px-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-24">
+            <h1 className="text-2xl font-bold text-blue-600">BuySmart</h1>
+            
+            <div className="flex-grow max-w-md relative ml-auto">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full py-2 pl-10 pr-4 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}
               >
-                <input
-                  type="text"
-                  placeholder="Search products, brands, categories..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border-none rounded-full bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                />
-                <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
-              </motion.div>
-            </div>
-            
-            {/* Toolbar */}
-            <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <motion.button 
-                  onClick={() => setFiltersVisible(!filtersVisible)}
-                  className="flex items-center px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <Grid size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}
+              >
+                <List size={20} />
+              </button>
+              <button
+                onClick={() => setFiltersVisible(!filtersVisible)}
+                className={`p-2 rounded ${filtersVisible ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}
+              >
+                <Filter size={20} />
+              </button>
+              {selectedProducts.length > 0 && (
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="flex items-center p-2 bg-blue-500 text-white rounded-lg"
+                  onClick={() => setCompareMode(true)}
                 >
-                  <Filter size={16} className="mr-2 text-blue-500" />
-                  <span>Filters</span>
-                  {filtersVisible ? <ChevronUp size={16} className="ml-2" /> : <ChevronDown size={16} className="ml-2" />}
+                  <ShoppingCart size={18} className="mr-1" />
+                  <span>{selectedProducts.length}</span>
                 </motion.button>
-                
-                <div className="flex bg-white border border-slate-200 rounded-full overflow-hidden shadow-sm">
-                  <motion.button 
-                    onClick={() => setViewMode('grid')}
-                    className={`flex items-center px-4 py-2 ${viewMode === 'grid' ? 'bg-slate-800 text-white' : 'bg-white hover:bg-slate-100'}`}
-                    whileHover={viewMode !== 'grid' ? { backgroundColor: '#f1f5f9' } : {}}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Grid size={16} className="mr-2" />
-                    <span className="text-sm">Grid</span>
-                  </motion.button>
-                  <motion.button 
-                    onClick={() => setViewMode('list')}
-                    className={`flex items-center px-4 py-2 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white hover:bg-slate-100'}`}
-                    whileHover={viewMode !== 'list' ? { backgroundColor: '#f1f5f9' } : {}}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <List size={16} className="mr-2" />
-                    <span className="text-sm">List</span>
-                  </motion.button>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap items-center gap-4">
-                <div>
-                  <select 
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="py-2 px-4 border border-slate-200 rounded-full text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                  >
-                    <option value="bestMatch">Best Match</option>
-                    <option value="priceLow">Price: Low to High</option>
-                    <option value="priceHigh">Price: High to Low</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="delivery">Fastest Delivery</option>
-                  </select>
-                </div>
-                
-                <AnimatePresence>
-                  {selectedProducts.length > 0 && (
-                    <motion.button 
-                      onClick={() => setCompareMode(true)}
-                      className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-sm"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Compare ({selectedProducts.length})
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-              </div>
+              )}
             </div>
-            
-            {/* Filters Panel */}
-            <AnimatePresence>
-              {filtersVisible && (
-                <motion.div 
-                  className="bg-white p-6 rounded-xl shadow-sm mb-6"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <h3 className="font-medium mb-3 text-slate-800">Categories</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {categories.map(category => (
-                          <motion.button
-                            key={category}
-                            onClick={() => setSelectedCategory(category)}
-                            className={`px-3 py-1.5 text-sm rounded-full capitalize ${
-                              selectedCategory === category 
-                                ? 'bg-blue-500 text-white' 
-                                : 'bg-slate-100 hover:bg-slate-200'
-                            }`}
-                            whileHover={selectedCategory !== category ? { scale: 1.05 } : {}}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            {category}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium mb-3 text-slate-800">Price Range</h3>
-                      <div className="px-2">
-                        <input 
-                          type="range"
-                          min="0"
-                          max="100000"
-                          step="1000"
-                          value={priceRange[1]}
-                          onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                          className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-blue-500"
-                        />
-                        <div className="flex justify-between mt-2 text-sm text-slate-600">
-                          <span>{formatPrice(priceRange[0])}</span>
-                          <span>{formatPrice(priceRange[1])}</span>
+          </div>
+        </div>
+      </header>
+      
+      <main className="container mx-auto py-6 px-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+        
+        <AnimatePresence>
+          {compareMode ? (
+            <ComparisonView />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {filtersVisible && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                      className="col-span-1 bg-white p-4 rounded-xl shadow-sm"
+                    >
+                      <h2 className="text-lg font-semibold text-slate-800 mb-4">Filters</h2>
+                      
+                      <div className="mb-6">
+                        <h3 className="text-sm font-medium text-slate-700 mb-2">Categories</h3>
+                        <div className="space-y-2">
+                          {categories.map(category => (
+                            <label key={category} className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="category"
+                                checked={selectedCategory === category}
+                                onChange={() => setSelectedCategory(category)}
+                                className="form-radio text-blue-500"
+                              />
+                              <span className="ml-2 text-sm capitalize">{category}</span>
+                            </label>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium mb-3 text-slate-800">Platforms</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {platforms.map(platform => (
-                          <div key={platform.name} className="flex items-center bg-slate-50 p-2 rounded-lg">
-                            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: platform.color }}></div>
-                            <span className="text-sm">{platform.name}</span>
+                      
+                      <div className="mb-6">
+                        <h3 className="text-sm font-medium text-slate-700 mb-2">Price Range</h3>
+                        <div className="px-2">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100000"
+                            step="1000"
+                            value={priceRange[1]}
+                            onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                            className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <div className="flex justify-between mt-1 text-xs text-slate-500">
+                            <span>₹0</span>
+                            <span>₹{priceRange[1].toLocaleString()}</span>
                           </div>
-                        ))}
+                        </div>
                       </div>
+                      
+                      <div className="mb-6">
+                        <h3 className="text-sm font-medium text-slate-700 mb-2">Sort By</h3>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                        >
+                          <option value="bestMatch">Best Match</option>
+                          <option value="priceLow">Price: Low to High</option>
+                          <option value="priceHigh">Price: High to Low</option>
+                          <option value="rating">Highest Rating</option>
+                          <option value="delivery">Fastest Delivery</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-700 mb-2">Platforms</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {platforms.map(platform => (
+                            <span
+                              key={platform.name}
+                              className="text-xs px-2 py-1 rounded-full text-white"
+                              style={{ backgroundColor: platform.color }}
+                            >
+                              {platform.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                <div className={`${filtersVisible ? 'col-span-1 md:col-span-3' : 'col-span-1 md:col-span-4'}`}>
+                  {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            {/* Products Grid */}
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                {Array(6).fill().map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm p-4 h-64 animate-pulse">
-                    <div className="bg-slate-200 h-32 w-32 rounded-lg mb-4 mx-auto"></div>
-                    <div className="bg-slate-200 h-4 w-3/4 rounded-full mb-2"></div>
-                    <div className="bg-slate-200 h-4 w-1/2 rounded-full mb-4"></div>
-                    <div className="bg-slate-200 h-6 w-full rounded-full"></div>
-                  </div>
-                ))}
+                  ) : filteredProducts.length === 0 ? (
+                    <div className="bg-white p-8 rounded-xl text-center">
+                      <h3 className="text-lg font-medium text-slate-700">No products found</h3>
+                      <p className="text-slate-500 mt-2">Try adjusting your filters or search query</p>
+                    </div>
+                  ) : (
+                    <div className={`grid gap-6 ${
+                      viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+                    }`}>
+                      {filteredProducts.map((product, index) => (
+                        <ProductCard key={product.id} product={product} index={index} />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              <>
-                {filteredProducts.length === 0 ? (
-                  <motion.div 
-                    className="bg-white text-center py-16 rounded-xl shadow-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <h3 className="text-xl font-medium text-slate-800 mb-2">No products found</h3>
-                    <p className="text-slate-500">Try adjusting your search or filters</p>
-                  </motion.div>
-                ) : (
-                  <div className={`grid ${
-                    viewMode === 'grid' 
-                      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                      : 'grid-cols-1'
-                  } gap-6`}>
-                    {filteredProducts.map((product, index) => (
-                      <ProductCard key={product.id} product={product} index={index} />
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
+            </>
+          )}
+        </AnimatePresence>
       </main>
-      
-      
     </div>
   );
 };

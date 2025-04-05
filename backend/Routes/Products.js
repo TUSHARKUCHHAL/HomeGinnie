@@ -56,7 +56,7 @@ const errorHandler = (res, error) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const { search, minPrice, maxPrice, inStock } = req.query;
+    const { search, category, minPrice, maxPrice, inStock } = req.query;
     
     // Build query object
     const query = {};
@@ -67,6 +67,11 @@ router.get('/', async (req, res) => {
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
+    }
+    
+    // Add category filter if provided
+    if (category && category !== 'all') {
+      query.category = category;
     }
     
     // Add price range filter if provided
@@ -126,7 +131,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { title, description, price, stock } = req.body;
+    const { title, description, price, stock, category } = req.body;
     
     // Handle image upload
     let imagePath;
@@ -148,7 +153,8 @@ router.post('/', upload.single('image'), async (req, res) => {
       description,
       price,
       stock: stock || 0,
-      image: imagePath
+      image: imagePath,
+      category: category || 'electronics'
     });
     
     const savedProduct = await product.save();
