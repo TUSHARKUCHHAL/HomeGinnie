@@ -1,6 +1,6 @@
 // ProductService.js - Service to fetch product data from the backend
 
-const API_URL ='http://localhost:5500/api';
+const API_URL ='http://localhost:5500';
 
 export const ProductService = {
   // Get all products with optional filters
@@ -16,7 +16,7 @@ export const ProductService = {
       if (filters.category) queryParams.append('category', filters.category);
       
       const queryString = queryParams.toString();
-      const url = `${API_URL}/products${queryString ? `?${queryString}` : ''}`;
+      const url = `${API_URL}/api/products${queryString ? `?${queryString}` : ''}`;
       
       const response = await fetch(url);
       
@@ -35,7 +35,7 @@ export const ProductService = {
   // Get a single product by ID
   async getProductById(id) {
     try {
-      const response = await fetch(`${API_URL}/products/${id}`);
+      const response = await fetch(`${API_URL}/api/products/${id}`);
       
       if (!response.ok) {
         throw new Error(`Error fetching product: ${response.statusText}`);
@@ -52,7 +52,7 @@ export const ProductService = {
   // Update product rating
   async updateRating(id, rating) {
     try {
-      const response = await fetch(`${API_URL}/products/${id}/rating`, {
+      const response = await fetch(`${API_URL}/api/products/${id}/rating`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

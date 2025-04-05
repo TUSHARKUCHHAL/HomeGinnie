@@ -178,7 +178,7 @@ const App = () => {
             element={
               <ProtectedRoute
                 isLoggedIn={isLoggedIn}
-                allowedRoles={["user", "admin"]}
+                allowedRoles={["user", "admin", "shop-owner", "service-provider"]}  
                 userRole={userRole}
               >
                 <BuySmart />
