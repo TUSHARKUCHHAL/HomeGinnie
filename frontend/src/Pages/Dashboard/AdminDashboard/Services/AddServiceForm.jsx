@@ -43,7 +43,7 @@ const AddServiceForm = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-slate-500/60 backdrop-blur-sm bg-opacity-50 z-50 flex items-center justify-center">
       <div 
         className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden transform transition-all animate-fadeIn"
         style={{animation: 'fadeIn 0.3s ease-out'}}
