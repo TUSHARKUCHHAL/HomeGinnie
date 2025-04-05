@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Star, ChevronRight, Home, ShieldCheck, Clock, Users, ChevronDown, MapPin, AlertCircle } from 'lucide-react';
 import SearchAddressBar from './SearchAddressBar';
@@ -492,88 +491,63 @@ const BookProPage = () => {
                                   </div>
                                 </>
                               ) : (
-                                // Expanded Horizontal Card View
-                                <div className="flex flex-col sm:flex-row animate-expandHorizontal">
-                                  {/* Left Side - Image and Basic Info */}
-                                  <div className="sm:w-1/3 mb-4 sm:mb-0 sm:mr-4">
-                                    <div className="relative w-full h-40 mb-3">
-                                      <img 
-                                        src="/api/placeholder/400/200" 
-                                        alt={service.name} 
-                                        className="w-full h-full object-cover rounded-lg" 
-                                      />
-                                    </div>
-                                    <h4 className="text-lg font-semibold text-slate-900 mb-1">{service.name}</h4>
-                                    <div className="flex items-center mb-2">
-                                      <div className="flex items-center bg-slate-700/40 text-white px-2 py-1 rounded-md text-xs mr-2">
-                                        <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
-                                        <span>{service.rating}</span>
-                                      </div>
-                                      <div className="flex items-center text-slate-500 text-xs">
-                                        <Users className="w-3 h-3 mr-1" />
-                                        <span>{service.bookings}+ bookings</span>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center mb-2">
-                                      <ShieldCheck className="w-3 h-3 text-green-600 mr-1" />
-                                      <span className="text-xs text-slate-600">
-                                        {service.verified ? "Verified Professional" : "Verification Pending"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Middle Section - Details */}
-                                  <div className="sm:w-1/3 mb-4 sm:mb-0 sm:mr-4">
-                                    <h5 className="text-sm font-semibold text-slate-900 mb-1">About</h5>
-                                    <p className="text-xs text-slate-600 mb-3">{service.description}</p>
-                                    
-                                    <h5 className="text-sm font-semibold text-slate-900 mb-1">Experience</h5>
-                                    <p className="text-xs text-slate-600 mb-3">{service.experience}</p>
-                                    
-                                    <h5 className="text-sm font-semibold text-slate-900 mb-1">Available Times</h5>
-                                    {service.availableTimes.map((time, idx) => (
-                                      <div key={idx} className="flex items-center mb-1 last:mb-0">
-                                        <Clock className="w-3 h-3 text-slate-600 mr-1" />
-                                        <span className="text-xs text-slate-600">{time}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  
-                                  {/* Right Section - Actions */}
-                                  <div className="sm:w-1/3 flex flex-col justify-between">
-                                    <div>
-                                      <h5 className="text-sm font-semibold text-slate-900 mb-2">Service Options</h5>
-                                      <div className="grid grid-cols-2 gap-2 mb-4">
-                                        <div className="bg-slate-100 p-2 rounded-lg text-xs text-center">One-time</div>
-                                        <div className="bg-slate-100 p-2 rounded-lg text-xs text-center">Recurring</div>
-                                        <div className="bg-slate-100 p-2 rounded-lg text-xs text-center">Emergency</div>
-                                        <div className="bg-slate-100 p-2 rounded-lg text-xs text-center">Bundle</div>
+                                // Updated Expanded Card View with About section moved to right column
+                                <div className="animate-expandHorizontal">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Left - Image Only */}
+                                    <div className="flex-shrink-0">
+                                      <div className="relative w-full h-40 mb-3">
+                                        <img 
+                                          src="/api/placeholder/400/200" 
+                                          alt={service.name} 
+                                          className="w-full h-full object-cover rounded-lg" 
+                                        />
                                       </div>
                                     </div>
                                     
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-col gap-2 mt-auto">
-                                      <button 
-                                        className="bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg py-2 transition shadow text-sm w-full"
-                                        onClick={(e) => handleHireNow(e, service.id)}
-                                      >
-                                        Hire Now
-                                      </button>
-                                      <button 
-                                        className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg py-2 transition shadow text-sm w-full"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        Contact
-                                      </button>
-                                      <button 
-                                        className="mt-2 text-slate-500 hover:text-slate-700 text-sm flex items-center justify-center"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleServiceExpansion(service.id);
-                                        }}
-                                      >
-                                        <ChevronDown className="w-4 h-4 mr-1" /> Close Details
-                                      </button>
+                                    {/* Right - All Text Content */}
+                                    <div className="flex flex-col">
+                                      <h4 className="text-lg font-semibold text-slate-900 mb-1">{service.name}</h4>
+                                      <div className="flex items-center mb-2">
+                                        <div className="flex items-center bg-slate-700/40 text-white px-2 py-1 rounded-md text-xs mr-2">
+                                          <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
+                                          <span>{service.rating}</span>
+                                        </div>
+                                        <div className="flex items-center text-slate-500 text-xs">
+                                          <Users className="w-3 h-3 mr-1" />
+                                          <span>{service.bookings}+ bookings</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center mb-2">
+                                        <ShieldCheck className="w-3 h-3 text-green-600 mr-1" />
+                                        <span className="text-xs text-slate-600">
+                                          {service.verified ? "Verified Professional" : "Verification Pending"}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* About section moved here */}
+                                      <h5 className="text-sm font-semibold text-slate-900 mb-1 mt-2">About</h5>
+                                      <p className="text-xs text-slate-600 mb-3">{service.description}</p>
+                                      
+                                      {/* Action buttons */}
+                                      <div className="flex flex-col gap-2 mt-auto">
+                                        <button 
+                                          className="bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg py-2 transition shadow text-sm w-full"
+                                          onClick={(e) => handleHireNow(e, service.id)}
+                                        >
+                                          Hire Now
+                                        </button>
+                                        
+                                        <button 
+                                          className="mt-2 text-slate-500 hover:text-slate-700 text-sm flex items-center justify-center"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleServiceExpansion(service.id);
+                                          }}
+                                        >
+                                          <ChevronDown className="w-4 h-4 mr-1" /> Close Details
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>

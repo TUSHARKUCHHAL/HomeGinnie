@@ -53,29 +53,29 @@ const About = () => {
 
   const teamMembers = [
     {
-      name: "Alex Johnson",
-      role: "Founder & CEO",
+      name: "Tushar",
+      role: "Team member 1",
       bio: "With over 15 years of experience in home services, Alex founded the company with a vision to revolutionize how people find and book home services.",
       avatar: "/api/placeholder/100/100"
     },
     {
-      name: "Sarah Miller",
-      role: "Chief Operations Officer",
+      name: "Harshit",
+      role: "Team Member 2",
       bio: "Sarah ensures that every service provider on our platform meets our strict quality standards and that customers receive exceptional service every time.",
       avatar: "/api/placeholder/100/100"
     },
     {
-      name: "Michael Chen",
-      role: "Head of Technology",
+      name: "Kunal",
+      role: "Team Member 3",
       bio: "Michael leads our development team in creating innovative solutions that make finding and booking home services as seamless as possible.",
       avatar: "/api/placeholder/100/100"
     },
-    {
-      name: "Priya Patel",
-      role: "Customer Experience Director",
-      bio: "Priya and her team work tirelessly to ensure that every customer interaction with our platform exceeds expectations.",
-      avatar: "/api/placeholder/100/100"
-    }
+    // {
+    //   // name: "Priya Patel",
+    //   // role: "Customer Experience Director",
+    //   // bio: "Priya and her team work tirelessly to ensure that every customer interaction with our platform exceeds expectations.",
+    //   // avatar: "/api/placeholder/100/100"
+    // }
   ];
 
   const testimonials = [
@@ -179,7 +179,7 @@ const About = () => {
                   <p className="italic text-slate-700">
                     "Our mission is to transform how homeowners manage, maintain, and enhance their living spaces through technology and exceptional service."
                   </p>
-                  <p className="text-slate-500 mt-2">— Alex Johnson, Founder & CEO</p>
+                  <p className="text-slate-500 mt-2">— Tushar, Team Member 1</p>
                 </div>
                 <p>
                   Our commitment remains the same as day one: to provide exceptional service, transparent pricing, and a stress-free experience for every customer.
