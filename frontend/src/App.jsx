@@ -41,6 +41,13 @@ import ShopOwnerForgetPassword from "./Pages/Shop/ResetPassword/ForgetPassword";
 import ShopOwnerResetPassword from "./Pages/Shop/ResetPassword/ResetPassword";
 
 
+
+//Admin Routes
+import AdminDashboard from './Pages/Dashboard/AdminDashboard/AdminDashboard';
+import AdminLogin from './Pages/Admin/Login';
+
+
+
 import ConfirmLogout from './Components/ConfirmLogout';
 import ProtectedRoute from './Components/ProtectedRoute';
 
@@ -122,6 +129,7 @@ const App = () => {
           <Route path="/ServiceProvider-ResetPassword/:token" element={<ServiceProviderResetPassword />} />
           <Route path="/ShopOwner-Forgot-Password" element={<ShopOwnerForgetPassword />} />
           <Route path="/ShopOwner-ResetPassword/:token" element={<ShopOwnerResetPassword />} />
+          <Route path="/Admin-Login" element={<AdminLogin />} />
 
           {/* Auth routes - redirect to home if already logged in */}
           <Route
@@ -210,6 +218,18 @@ const App = () => {
                 userRole={userRole}
               >
                 <SellProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Admin-Dashboard"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["admin"]}
+                userRole={userRole}
+              >
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
