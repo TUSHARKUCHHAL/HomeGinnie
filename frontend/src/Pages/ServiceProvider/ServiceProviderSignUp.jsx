@@ -453,582 +453,592 @@ const handleSubmit = async (e) => {
 };
 
   // Render form based on current step
-  const renderFormStep = () => {
-    switch(currentStep) {
-      case 1:
-        return (
-          <div className="fade-in">
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Personal Information</h2>
-            
-            {/* Name Fields - Side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* First Name */}
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-1">
-                  First Name <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaUser className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className={`pl-10 block w-full rounded-lg border ${errors.firstName ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                    placeholder="John"
-                  />
-                  {errors.firstName && (
-                    <div className="flex items-center mt-1 text-red-500 text-xs">
-                      <FaExclamationCircle className="mr-1" /> {errors.firstName}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Last Name */}
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-1">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaUser className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className={`pl-10 block w-full rounded-lg border ${errors.lastName ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                    placeholder="Doe"
-                  />
-                  {errors.lastName && (
-                    <div className="flex items-center mt-1 text-red-500 text-xs">
-                      <FaExclamationCircle className="mr-1" /> {errors.lastName}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Email Field */}
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                Email address <span className="text-red-500">*</span>
+const renderFormStep = () => {
+  switch(currentStep) {
+    case 1:
+      return (
+        <div className="fade-in">
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Personal Information</h2>
+          
+          {/* Name Fields - Side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* First Name */}
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-1">
+                First Name <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaEnvelope className="h-5 w-5 text-slate-400" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <FaUser className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="firstName"
+                  name="firstName"
+                  type="text"
                   required
-                  value={formData.email}
+                  value={formData.firstName}
                   onChange={handleChange}
-                  className={`pl-10 block w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                  placeholder="you@example.com"
+                  className={`pl-10 block w-full rounded-lg border ${errors.firstName ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                  placeholder="John"
                 />
-                {errors.email && (
-                  <div className="flex items-center mt-1 text-red-500 text-xs">
-                    <FaExclamationCircle className="mr-1" /> {errors.email}
-                  </div>
-                )}
               </div>
-            </div>
-            
-            {/* Phone Fields - Side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* Primary Phone */}
-              <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-slate-700 mb-1">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaPhone className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    type="tel"
-                    required
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    className={`pl-10 block w-full rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                    placeholder="+91 9876543210"
-                  />
-                  {errors.phoneNumber && (
-                    <div className="flex items-center mt-1 text-red-500 text-xs">
-                      <FaExclamationCircle className="mr-1" /> {errors.phoneNumber}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Alternate Phone */}
-              <div>
-                <label htmlFor="alternateNumber" className="block text-sm font-medium text-slate-700 mb-1">
-                  Alternate Number (Optional)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaPhone className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="alternateNumber"
-                    name="alternateNumber"
-                    type="tel"
-                    value={formData.alternateNumber}
-                    onChange={handleChange}
-                    className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
-                    placeholder="+91 9876543210"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* Password Field */}
-            <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaLock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`pl-10 block w-full rounded-lg border ${errors.password ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-500"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.password ? (
+              {errors.firstName && (
                 <div className="flex items-center mt-1 text-red-500 text-xs">
-                  <FaExclamationCircle className="mr-1" /> {errors.password}
+                  <FaExclamationCircle className="mr-1" /> {errors.firstName}
                 </div>
-              ) : (
-                <p className="mt-1 text-xs text-slate-500">
-                  Must be at least 8 characters long with a mix of uppercase, lowercase, numbers, and symbols
-                </p>
               )}
             </div>
+            
+            {/* Last Name */}
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-1">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <FaUser className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={`pl-10 block w-full rounded-lg border ${errors.lastName ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                  placeholder="Doe"
+                />
+              </div>
+              {errors.lastName && (
+                <div className="flex items-center mt-1 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.lastName}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Email Field */}
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+              Email address <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <FaEnvelope className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className={`pl-10 block w-full rounded-lg border ${errors.email ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="you@example.com"
+              />
+            </div>
+            {errors.email && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.email}
+              </div>
+            )}
+          </div>
+          
+          {/* Phone Fields - Side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* Primary Phone */}
+            <div>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-slate-700 mb-1">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <FaPhone className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  type="tel"
+                  required
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className={`pl-10 block w-full rounded-lg border ${errors.phoneNumber ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                  placeholder="+91 9876543210"
+                />
+              </div>
+              {errors.phoneNumber && (
+                <div className="flex items-center mt-1 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.phoneNumber}
+                </div>
+              )}
+            </div>
+            
+            {/* Alternate Phone */}
+            <div>
+              <label htmlFor="alternateNumber" className="block text-sm font-medium text-slate-700 mb-1">
+                Alternate Number (Optional)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <FaPhone className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  id="alternateNumber"
+                  name="alternateNumber"
+                  type="tel"
+                  value={formData.alternateNumber}
+                  onChange={handleChange}
+                  className="pl-10 block w-full rounded-lg border border-slate-300 bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm"
+                  placeholder="+91 9876543210"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Password Field */}
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+              Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <FaLock className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className={`pl-10 block w-full rounded-lg border ${errors.password ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-500 z-10"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+              </button>
+            </div>
+            {errors.password ? (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.password}
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-slate-500">
+                Must be at least 8 characters long with a mix of uppercase, lowercase, numbers, and symbols
+              </p>
+            )}
+          </div>
 
-            {/* Confirm Password Field */}
-            <div className="mb-4">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
-                Confirm Password <span className="text-red-500">*</span>
+          {/* Confirm Password Field */}
+          <div className="mb-4">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+              Confirm Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <FaLock className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`pl-10 block w-full rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-500 z-10"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.confirmPassword}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+      
+    case 2:
+      return (
+        <div className="fade-in">
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Address Information</h2>
+          
+          {/* Street Address */}
+          <div className="mb-4">
+            <label htmlFor="street" className="block text-sm font-medium text-slate-700 mb-1">
+              Street Address <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <FaMapMarkerAlt className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="street"
+                name="street"
+                type="text"
+                required
+                value={formData.street}
+                onChange={handleChange}
+                className={`pl-10 block w-full rounded-lg border ${errors.street ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="123 Main Street, Apartment 4B"
+              />
+            </div>
+            {errors.street && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.street}
+              </div>
+            )}
+          </div>
+          
+          {/* City and State - Side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* City */}
+            <div>
+              <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1">
+                City <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaLock className="h-5 w-5 text-slate-400" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <IoBusinessSharp className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  autoComplete="new-password"
+                  id="city"
+                  name="city"
+                  type="text"
                   required
-                  value={formData.confirmPassword}
+                  value={formData.city}
                   onChange={handleChange}
-                  className={`pl-10 block w-full rounded-lg border ${errors.confirmPassword ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                  placeholder="••••••••"
+                  className={`pl-10 block w-full rounded-lg border ${errors.city ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                  placeholder="Mumbai"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-500"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
-                </button>
               </div>
-              {errors.confirmPassword && (
+              {errors.city && (
                 <div className="flex items-center mt-1 text-red-500 text-xs">
-                  <FaExclamationCircle className="mr-1" /> {errors.confirmPassword}
+                  <FaExclamationCircle className="mr-1" /> {errors.city}
+                </div>
+              )}
+            </div>
+            
+            {/* State */}
+            <div>
+              <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1">
+                State <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <FaRegIdCard className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  id="state"
+                  name="state"
+                  type="text"
+                  required
+                  value={formData.state}
+                  onChange={handleChange}
+                  className={`pl-10 block w-full rounded-lg border ${errors.state ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                  placeholder="Maharashtra"
+                />
+              </div>
+              {errors.state && (
+                <div className="flex items-center mt-1 text-red-500 text-xs">
+                  <FaExclamationCircle className="mr-1" /> {errors.state}
                 </div>
               )}
             </div>
           </div>
-        );
-        
-      case 2:
-        return (
-          <div className="fade-in">
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Address Information</h2>
+          
+          {/* Postal Code */}
+          <div className="mb-4">
+            <label htmlFor="postalCode" className="block text-sm font-medium text-slate-700 mb-1">
+              Postal Code <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <FaMapMarkerAlt className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="postalCode"
+                name="postalCode"
+                type="text"
+                required
+                value={formData.postalCode}
+                onChange={handleChange}
+                className={`pl-10 block w-full rounded-lg border ${errors.postalCode ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="400001"
+              />
+            </div>
+            {errors.postalCode && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.postalCode}
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="font-medium text-slate-700 mb-2">Service Coverage Area</h3>
+            <p className="text-sm text-slate-500">
+              This address will be used to determine your service coverage area. You'll be able to specify your exact service radius later.
+            </p>
+          </div>
+        </div>
+      );
+      
+    case 3:
+      return (
+        <div className="fade-in">
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Services & Experience</h2>
+          
+          {/* Service Categories */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-3">
+              Select Services You Provide <span className="text-red-500">*</span>
+            </label>
             
-            {/* Street Address */}
-            <div className="mb-4">
-              <label htmlFor="street" className="block text-sm font-medium text-slate-700 mb-1">
-                Street Address <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaMapMarkerAlt className="h-5 w-5 text-slate-400" />
+            {errors.selectedServices && (
+              <div className="flex items-center mb-3 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.selectedServices}
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {serviceCategories.map((service) => (
+                <div
+                  key={service}
+                  onClick={() => toggleService(service)}
+                  className={`service-badge flex items-center px-3 py-2 rounded-lg border cursor-pointer ${
+                    formData.selectedServices.includes(service)
+                      ? 'selected bg-slate-800 text-white border-slate-800'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <FaToolbox className="mr-2 h-4 w-4" />
+                  <span className="text-sm">{service}</span>
                 </div>
-                <input
-                  id="street"
-                  name="street"
-                  type="text"
-                  required
-                  value={formData.street}
-                  onChange={handleChange}
-                  className={`pl-10 block w-full rounded-lg border ${errors.street ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                  placeholder="123 Main Street, Apartment 4B"
-                />
-                {errors.street && (
-                  <div className="flex items-center mt-1 text-red-500 text-xs">
-                    <FaExclamationCircle className="mr-1" /> {errors.street}
+              ))}
+            </div>
+          </div>
+          
+          {/* Years of Experience */}
+          <div className="mb-4">
+            <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-slate-700 mb-1">
+              Years of Experience <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                <FaStar className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="yearsOfExperience"
+                name="yearsOfExperience"
+                type="number"
+                min="0"
+                max="50"
+                required
+                value={formData.yearsOfExperience}
+                onChange={handleChange}
+                className={`pl-10 block w-full rounded-lg border ${errors.yearsOfExperience ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+                placeholder="5"
+              />
+            </div>
+            {errors.yearsOfExperience && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.yearsOfExperience}
+              </div>
+            )}
+          </div>
+          
+          {/* Experience Description */}
+          <div className="mb-4">
+            <label htmlFor="experienceDescription" className="block text-sm font-medium text-slate-700 mb-1">
+              Experience Description (Optional)
+            </label>
+            <textarea
+              id="experienceDescription"
+              name="experienceDescription"
+              rows="3"
+              required
+              value={formData.experienceDescription}
+              onChange={handleChange}
+              className={`block w-full rounded-lg border ${errors.experienceDescription ? 'border-red-500' : 'border-slate-300'} bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+              placeholder="Describe your experience, qualifications, certifications, and specializations..."
+            />
+            {errors.experienceDescription && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.experienceDescription}
+              </div>
+            )}
+          </div>
+          
+          {/* About Me */}
+          <div className="mb-4">
+            <label htmlFor="about" className="block text-sm font-medium text-slate-700 mb-1">
+              About Me
+            </label>
+            <textarea
+              id="about"
+              name="about"
+              rows="4"
+              required
+              value={formData.about}
+              onChange={handleChange}
+              className={`block w-full rounded-lg border ${errors.about ? 'border-red-500' : 'border-slate-300'} bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
+              placeholder="Tell potential customers about yourself, your approach to work, and what makes your service special..."
+            />
+            {errors.about && (
+              <div className="flex items-center mt-1 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.about}
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="font-medium text-slate-700 mb-2">Customer Visibility</h3>
+            <p className="text-sm text-slate-500">
+              This information will be visible to potential customers browsing the platform. Make sure to highlight your expertise and unique qualities.
+            </p>
+          </div>
+        </div>
+      );
+      
+    case 4:
+      return (
+        <div className="fade-in">
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Review & Submit</h2>
+          
+          {/* Summary */}
+          <div className="mb-6 bg-white rounded-lg border border-slate-200 overflow-hidden">
+            {/* Personal */}
+            <div className="p-4 border-b border-slate-200">
+              <h3 className="text-lg font-medium text-slate-800 mb-3">Personal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                <div>
+                  <span className="text-slate-500">Name:</span>{' '}
+                  <span className="font-medium">{formData.firstName} {formData.lastName}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500">Email:</span>{' '}
+                  <span className="font-medium">{formData.email}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500">Phone:</span>{' '}
+                  <span className="font-medium">{formData.phoneNumber}</span>
+                </div>
+                {formData.alternateNumber && (
+                  <div>
+                    <span className="text-slate-500">Alternate Phone:</span>{' '}
+                    <span className="font-medium">{formData.alternateNumber}</span>
                   </div>
                 )}
               </div>
             </div>
             
-            {/* City and State - Side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* City */}
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <IoBusinessSharp className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="city"
-                    name="city"
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={handleChange}
-                    className={`pl-10 block w-full rounded-lg border ${errors.city ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                    placeholder="Mumbai"
-                  />
-                  {errors.city && (
-                    <div className="flex items-center mt-1 text-red-500 text-xs">
-                      <FaExclamationCircle className="mr-1" /> {errors.city}
-                    </div>
-                  )}
+            {/* Address */}
+            <div className="p-4 border-b border-slate-200">
+              <h3 className="text-lg font-medium text-slate-800 mb-3">Address</h3>
+              <div className="grid grid-cols-1 gap-y-2 text-sm">
+                <div>
+                  <span className="text-slate-500">Street:</span>{' '}
+                  <span className="font-medium">{formData.street}</span>
                 </div>
-              </div>
-              
-              {/* State */}
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1">
-                  State <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaRegIdCard className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="state"
-                    name="state"
-                    type="text"
-                    required
-                    value={formData.state}
-                    onChange={handleChange}
-                    className={`pl-10 block w-full rounded-lg border ${errors.state ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                    placeholder="Maharashtra"
-                  />
-                  {errors.state && (
-                    <div className="flex items-center mt-1 text-red-500 text-xs">
-                      <FaExclamationCircle className="mr-1" /> {errors.state}
-                    </div>
-                  )}
+                <div>
+                  <span className="text-slate-500">City, State, Postal Code:</span>{' '}
+                  <span className="font-medium">
+                    {formData.city}, {formData.state} {formData.postalCode}
+                  </span>
                 </div>
               </div>
             </div>
             
-            {/* Postal Code */}
-            <div className="mb-4">
-              <label htmlFor="postalCode" className="block text-sm font-medium text-slate-700 mb-1">
-                Postal Code <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaMapMarkerAlt className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="postalCode"
-                  name="postalCode"
-                  type="text"
-                  required
-                  value={formData.postalCode}
-                  onChange={handleChange}
-                  className={`pl-10 block w-full rounded-lg border ${errors.postalCode ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                  placeholder="400001"
-                />
-                {errors.postalCode && (
-                  <div className="flex items-center mt-1 text-red-500 text-xs">
-                    <FaExclamationCircle className="mr-1" /> {errors.postalCode}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
-  <h3 className="font-medium text-slate-700 mb-2">Service Coverage Area</h3>
-  <p className="text-sm text-slate-500">
-    This address will be used to determine your service coverage area. You'll be able to specify your exact service radius later.
-  </p>
-</div>
-          </div>
-        );
-        
-      case 3:
-        return (
-          <div className="fade-in">
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Services & Experience</h2>
-            
-            {/* Service Categories */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                Select Services You Provide <span className="text-red-500">*</span>
-              </label>
-              
-              {errors.selectedServices && (
-                <div className="flex items-center mb-3 text-red-500 text-xs">
-                  <FaExclamationCircle className="mr-1" /> {errors.selectedServices}
-                </div>
-              )}
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {serviceCategories.map((service) => (
-                  <div
+            {/* Services */}
+            <div className="p-4 border-b border-slate-200">
+              <h3 className="text-lg font-medium text-slate-800 mb-3">Services</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {formData.selectedServices.map((service) => (
+                  <span
                     key={service}
-                    onClick={() => toggleService(service)}
-                    className={`service-badge flex items-center px-3 py-2 rounded-lg border cursor-pointer ${
-                      formData.selectedServices.includes(service)
-                        ? 'selected bg-slate-800 text-white border-slate-800'
-                        : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                    }`}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800"
                   >
-                    <FaToolbox className="mr-2 h-4 w-4" />
-                    <span className="text-sm">{service}</span>
-                  </div>
+                    <FaToolbox className="mr-1 h-3 w-3" /> {service}
+                  </span>
                 ))}
               </div>
+              <div className="text-sm">
+                <span className="text-slate-500">Years of Experience:</span>{' '}
+                <span className="font-medium">{formData.yearsOfExperience}</span>
+              </div>
             </div>
             
-            {/* Years of Experience */}
-            <div className="mb-4">
-              <label htmlFor="yearsOfExperience" className="block text-sm font-medium text-slate-700 mb-1">
-                Years of Experience <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaStar className="h-5 w-5 text-slate-400" />
-                </div>
+            {/* About */}
+            <div className="p-4">
+              <h3 className="text-lg font-medium text-slate-800 mb-3">About & Experience</h3>
+              <div className="text-sm mb-3">
+                <span className="block text-slate-500 mb-1">Experience:</span>
+                <p className="text-slate-700">{formData.experienceDescription}</p>
+              </div>
+              <div className="text-sm">
+                <span className="block text-slate-500 mb-1">About Me:</span>
+                <p className="text-slate-700">{formData.about}</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Terms and Conditions */}
+          <div className="mb-6">
+            <div className="flex items-start">
+              <div className="flex h-5 items-center">
                 <input
-                  id="yearsOfExperience"
-                  name="yearsOfExperience"
-                  type="number"
-                  min="0"
-                  max="50"
-                  required
-                  value={formData.yearsOfExperience}
+                  id="agreeTerms"
+                  name="agreeTerms"
+                  type="checkbox"
+                  checked={formData.agreeTerms}
                   onChange={handleChange}
-                  className={`pl-10 block w-full rounded-lg border ${errors.yearsOfExperience ? 'border-red-500' : 'border-slate-300'} bg-white py-3 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                  placeholder="5"
+                  className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
                 />
-                {errors.yearsOfExperience && (
-                  <div className="flex items-center mt-1 text-red-500 text-xs">
-                    <FaExclamationCircle className="mr-1" /> {errors.yearsOfExperience}
-                  </div>
-                )}
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="agreeTerms" className="font-medium text-slate-700">
+                  I agree to the terms and conditions <span className="text-red-500">*</span>
+                </label>
+                <p className="text-slate-500">
+                  By checking this box, you agree to our{' '}
+                  <a href="#" className="text-slate-700 underline hover:text-slate-900">
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a href="#" className="text-slate-700 underline hover:text-slate-900">
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
               </div>
             </div>
-            
-            {/* Experience Description */}
-            <div className="mb-4">
-              <label htmlFor="experienceDescription" className="block text-sm font-medium text-slate-700 mb-1">
-                Experience Description (Optional)
-              </label>
-              <textarea
-                id="experienceDescription"
-                name="experienceDescription"
-                rows="3"
-                required
-                value={formData.experienceDescription}
-                onChange={handleChange}
-                className={`block w-full rounded-lg border ${errors.experienceDescription ? 'border-red-500' : 'border-slate-300'} bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                placeholder="Describe your experience, qualifications, certifications, and specializations..."
-              />
-            </div>
-            
-            {/* About Me */}
-            <div className="mb-4">
-              <label htmlFor="about" className="block text-sm font-medium text-slate-700 mb-1">
-                About Me
-              </label>
-              <textarea
-                id="about"
-                name="about"
-                rows="4"
-                required
-                value={formData.about}
-                onChange={handleChange}
-                className={`block w-full rounded-lg border ${errors.about ? 'border-red-500' : 'border-slate-300'} bg-white py-3 px-4 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 sm:text-sm`}
-                placeholder="Tell potential customers about yourself, your approach to work, and what makes your service special..."
-              />
-            </div>
-            
-            <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
-              <h3 className="font-medium text-slate-700 mb-2">Customer Visibility</h3>
-              <p className="text-sm text-slate-500">
-                This information will be visible to potential customers browsing the platform. Make sure to highlight your expertise and unique qualities.
-              </p>
-            </div>
+            {errors.agreeTerms && (
+              <div className="flex items-center mt-1 ml-7 text-red-500 text-xs">
+                <FaExclamationCircle className="mr-1" /> {errors.agreeTerms}
+              </div>
+            )}
           </div>
-        );
-        
-      case 4:
-        return (
-          <div className="fade-in">
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 mb-6 mt-4 animate-scale-up">Review & Submit</h2>
-            
-            {/* Summary */}
-            <div className="mb-6 bg-white rounded-lg border border-slate-200 overflow-hidden">
-              {/* Personal */}
-              <div className="p-4 border-b border-slate-200">
-                <h3 className="text-lg font-medium text-slate-800 mb-3">Personal Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 text-sm">
-                  <div>
-                    <span className="text-slate-500">Name:</span>{' '}
-                    <span className="font-medium">{formData.firstName} {formData.lastName}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Email:</span>{' '}
-                    <span className="font-medium">{formData.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Phone:</span>{' '}
-                    <span className="font-medium">{formData.phoneNumber}</span>
-                  </div>
-                  {formData.alternateNumber && (
-                    <div>
-                      <span className="text-slate-500">Alternate Phone:</span>{' '}
-                      <span className="font-medium">{formData.alternateNumber}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Address */}
-              <div className="p-4 border-b border-slate-200">
-                <h3 className="text-lg font-medium text-slate-800 mb-3">Address</h3>
-                <div className="grid grid-cols-1 gap-y-2 text-sm">
-                  <div>
-                    <span className="text-slate-500">Street:</span>{' '}
-                    <span className="font-medium">{formData.street}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">City, State, Postal Code:</span>{' '}
-                    <span className="font-medium">
-                      {formData.city}, {formData.state} {formData.postalCode}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Services */}
-              <div className="p-4 border-b border-slate-200">
-                <h3 className="text-lg font-medium text-slate-800 mb-3">Services</h3>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {formData.selectedServices.map((service) => (
-                    <span
-                      key={service}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800"
-                    >
-                      <FaToolbox className="mr-1 h-3 w-3" /> {service}
-                    </span>
-                  ))}
-                </div>
-                <div className="text-sm">
-                  <span className="text-slate-500">Years of Experience:</span>{' '}
-                  <span className="font-medium">{formData.yearsOfExperience}</span>
-                </div>
-              </div>
-              
-              {/* About */}
-              <div className="p-4">
-                <h3 className="text-lg font-medium text-slate-800 mb-3">About & Experience</h3>
-                <div className="text-sm mb-3">
-                  <span className="block text-slate-500 mb-1">Experience:</span>
-                  <p className="text-slate-700">{formData.experienceDescription}</p>
-                </div>
-                <div className="text-sm">
-                  <span className="block text-slate-500 mb-1">About Me:</span>
-                  <p className="text-slate-700">{formData.about}</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Terms and Conditions */}
-            <div className="mb-6">
-              <div className="flex items-start">
-                <div className="flex h-5 items-center">
-                  <input
-                    id="agreeTerms"
-                    name="agreeTerms"
-                    type="checkbox"
-                    checked={formData.agreeTerms}
-                    onChange={handleChange}
-                    className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="agreeTerms" className="font-medium text-slate-700">
-                    I agree to the terms and conditions <span className="text-red-500">*</span>
-                  </label>
-                  <p className="text-slate-500">
-                    By checking this box, you agree to our{' '}
-                    <a href="#" className="text-slate-700 underline hover:text-slate-900">
-                      Terms of Service
-                    </a>{' '}
-                    and{' '}
-                    <a href="#" className="text-slate-700 underline hover:text-slate-900">
-                      Privacy Policy
-                    </a>
-                    .
-                  </p>
-                </div>
-              </div>
-              {errors.agreeTerms && (
-                <div className="flex items-center mt-1 ml-7 text-red-500 text-xs">
-                  <FaExclamationCircle className="mr-1" /> {errors.agreeTerms}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      
-      default:
-        return null;
-    }
-  };
+        </div>
+      );
+    
+    default:
+      return null;
+  }
+};
 
   return (
     <div className="signup-container bg-slate-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative">
