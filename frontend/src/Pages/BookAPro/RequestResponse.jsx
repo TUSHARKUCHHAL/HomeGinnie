@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Filter, MapPin, Clock, DollarSign, Award, X } from 'lucide-react';
+import { Star, Filter, MapPin, Clock, DollarSign, Award, X, MessageSquare, Phone, UserCheck } from 'lucide-react';
 
 const RequestResponse = ({ userAddress }) => {
   // Sample data - in a real app, this would come from an API/websocket
@@ -319,11 +319,23 @@ const RequestResponse = ({ userAddress }) => {
                 </div>
               </div>
               
+              {/* Updated Button Section */}
               <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
-                <button className="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg transition-colors">
-                  Contact Provider
-                </button>
-              </div>
+  <div className="flex items-center justify-between">
+    <button className="flex-grow flex items-center justify-center bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg transition-colors mr-2">
+      <UserCheck className="h-4 w-4 mr-2" />
+      <span>Hire</span>
+    </button>
+    <div className="flex space-x-2">
+      <button className="p-3 bg-slate-500/80 hover:bg-slate-600/80 text-white rounded-lg transition-colors">
+        <MessageSquare className="h-4 w-4" />
+      </button>
+      <button className="p-3 bg-green-600/90 hover:bg-green-700 text-white rounded-lg transition-colors">
+        <Phone className="h-4 w-4" />
+      </button>
+    </div>
+  </div>
+</div>
             </motion.div>
           ))}
         </AnimatePresence>
