@@ -1,5 +1,9 @@
+
+// export default ResetPassword;
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -79,12 +83,12 @@ const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50 relative overflow-hidden">
       {/* Animated Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="blob-1 absolute w-96 h-96 rounded-full bg-slate-200/40 blur-3xl animate-blob"></div>
-        <div className="blob-2 absolute w-96 h-96 rounded-full bg-slate-300/40 blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="blob-3 absolute w-96 h-96 rounded-full bg-slate-200/40 blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="blob-1 absolute w-96 h-96 rounded-full bg-slate-200/90 blur-3xl animate-blob"></div>
+        <div className="blob-2 absolute w-96 h-96 rounded-full bg-slate-300/70 blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="blob-3 absolute w-96 h-96 rounded-full bg-slate-500/40 blur-3xl animate-blob animation-delay-4000"></div>
       </div>
       
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative mt-20 z-10">
         <div className="bg-white/80 backdrop-blur-xl rounded-lg shadow-md border border-slate-200 p-8">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Reset Password</h2>
@@ -105,38 +109,16 @@ const ResetPassword = () => {
                   disabled={isLoading}
                   required
                   aria-describedby="password-requirements"
-                  className="w-full px-4 py-2 pl-10 bg-white border border-slate-300 focus:border-slate-800 focus:ring focus:ring-slate-800/20 rounded-md text-slate-900 transition-all"
+                  className="w-full px-4 py-2 bg-white border border-slate-300 focus:border-slate-800 focus:ring focus:ring-slate-800/20 rounded-md text-slate-900 transition-all"
                   placeholder="Enter new password"
                 />
-                <svg 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-800" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                >
-                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                </svg>
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? (
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                      <line x1="2" x2="22" y1="2" y2="22" />
-                    </svg>
-                  ) : (
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                    </svg>
-                  )}
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -153,38 +135,16 @@ const ResetPassword = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="w-full px-4 py-2 pl-10 bg-white border border-slate-300 focus:border-slate-800 focus:ring focus:ring-slate-800/20 rounded-md text-slate-900 transition-all"
+                  className="w-full px-4 py-2 bg-white border border-slate-300 focus:border-slate-800 focus:ring focus:ring-slate-800/20 rounded-md text-slate-900 transition-all"
                   placeholder="Confirm your password"
                 />
-                <svg 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-800" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                >
-                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                </svg>
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
-                  {showConfirmPassword ? (
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                      <line x1="2" x2="22" y1="2" y2="22" />
-                    </svg>
-                  ) : (
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                    </svg>
-                  )}
+                  <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -255,11 +215,10 @@ const ResetPassword = () => {
             </button>
 
             <div className="text-center pt-2">
-              
               <a href="/login" className="text-slate-600 hover:text-slate-800 text-sm inline-flex items-center transition-colors ">
-              <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                  </svg>
+                <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
                 Back to login
               </a>
             </div>
