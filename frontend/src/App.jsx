@@ -106,7 +106,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/About-Us" element={<About />} />
           <Route path="/Contact-Us" element={<ContactUs />} />
-          <Route path="/Forgot-Password" element={<ForgotPassword />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
           <Route path="/ResetPassword/:token" element={<ResetPassword />} />
 
           {/* Auth routes - redirect to home if already logged in */}
