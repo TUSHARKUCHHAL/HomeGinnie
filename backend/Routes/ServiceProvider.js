@@ -4,12 +4,24 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const ServiceProvider = require('../Models/ServiceProvider');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 // At the top of your main server file (app.js or server.js)
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Auth middleware
+
+// Configure Nodemailer with error handling
+const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass:process.env.EMAIL_PASS ,
+    }
+  })
+
+  // Auth middleware
 const protect = async (req, res, next) => {
   let token;
 
@@ -302,5 +314,166 @@ router.get('/book-a-pro', protect, async (req, res, next) => {
     res.status(500).json({ message: error.message || 'Server error while fetching dashboard data' });
   }
 });
+
+
+
+// Add this utility function for email validation
+const validateEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+};
+
+// Add this error handling function
+const handleError = (res, error, specificMessage = null) => {
+  console.error('Password reset error:', error);
+  res.status(500).json({ message: specificMessage || error.message || 'Server error during password reset' });
+};
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // Find service provider with proper error handling
+    const serviceProvider = await ServiceProvider.findOne({ email }).exec();
+    if (!serviceProvider) {
+      return res.status(404).json({ message: "Service provider not found" });
+    }
+
+    // Generate tokens with stronger randomness
+    const token = crypto.randomBytes(64).toString("hex");
+    const resetToken = jwt.sign({ id: serviceProvider._id }, JWT_SECRET, { 
+      expiresIn: "1h" 
+    });
+
+    // Update service provider with reset tokens
+    serviceProvider.resetPasswordToken = token;
+    serviceProvider.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    
+    // Save with error handling
+    try {
+      await serviceProvider.save();
+    } catch (saveError) {
+      return handleError(res, saveError, "Failed to save reset token");
+    }
+
+    const resetUrl = `${process.env.FRONTEND_URL}/ServiceProvider-ResetPassword/${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: serviceProvider.email,
+      subject: "Password Reset Request for Your Service Provider Account",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+          </div>
+          <h2 style="color: #333; margin-bottom: 15px;">Password Reset Request</h2>
+          <p style="color: #555; line-height: 1.5;">Hello ${serviceProvider.firstName},</p>
+          <p style="color: #555; line-height: 1.5;">We received a request to reset the password for your service provider account. If you didn't make this request, you can safely ignore this email.</p>
+          <div style="margin: 25px 0; text-align: center;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Your Password</a>
+          </div>
+          <p style="color: #555; line-height: 1.5;">This link will expire in 1 hour for security reasons.</p>
+          <p style="color: #555; line-height: 1.5;">If the button above doesn't work, you can copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; background-color: #f7f7f7; padding: 10px; border-radius: 3px; font-size: 14px;">${resetUrl}</p>
+          <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px;">
+            <p>If you didn't request this password reset, please contact our support team immediately at ${process.env.SUPPORT_EMAIL}.</p>
+            <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || 'HomeGinnie'}. All rights reserved.</p>
+          </div>
+        </div>
+      `
+    };
+
+    // Send email with comprehensive error handling
+    try {
+      await transporter.sendMail(mailOptions);
+      res.json({ message: "Reset link sent to your email" });
+    } catch (emailError) {
+      return handleError(res, emailError, "Failed to send reset email");
+    }
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+// @route   POST /reset-password/:token
+// @desc    Reset service provider password using token
+// @access  Public
+router.post("/reset-password/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    // Validate password strength according to same requirements as registration
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        message: "Password must be at least 8 characters long" 
+      });
+    }
+
+    if (!/\d/.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must contain at least one number"
+      });
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must contain at least one lowercase letter"
+      });
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must contain at least one uppercase letter"
+      });
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must contain at least one special character"
+      });
+    }
+
+    // Verify token with error handling
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (tokenError) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    // Find service provider with proper query
+    const serviceProvider = await ServiceProvider.findById(decoded.id).exec();
+    if (!serviceProvider) {
+      return res.status(404).json({ message: "Service provider not found" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update service provider password
+    serviceProvider.password = hashedPassword;
+    serviceProvider.resetPasswordToken = undefined;
+    serviceProvider.resetPasswordExpires = undefined;
+
+    // Save with error handling
+    try {
+      await serviceProvider.save();
+      res.json({ message: "Password reset successful" });
+    } catch (saveError) {
+      return handleError(res, saveError, "Failed to update password");
+    }
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
 
 module.exports = router;

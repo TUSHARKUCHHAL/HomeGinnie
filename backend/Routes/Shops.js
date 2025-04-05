@@ -4,6 +4,8 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const nodemailer = require("nodemailer")
+const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const { check, validationResult } = require('express-validator');
@@ -14,6 +16,17 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+
+// Configure Nodemailer with error handling
+const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass:process.env.EMAIL_PASS ,
+    }
+  })
+  
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -227,75 +240,6 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-// @route   POST /auth/google
-// @desc    Google OAuth for shop owners
-// @access  Public
-router.post("/auth/google", async (req, res, next) => {
-  try {
-    const { token } = req.body;
-    
-    if (!token) {
-      res.status(400);
-      throw new Error('Google token is required');
-    }
-
-    // Verify Google token
-    const ticket = await client.verifyIdToken({ 
-      idToken: token, 
-      audience: GOOGLE_CLIENT_ID 
-    });
-    
-    const payload = ticket.getPayload();
-    const { email, sub: googleId, name, picture } = payload;
-    
-    // Check if shop owner exists
-    let shopOwner = await ShopOwner.findOne({ email });
-    
-    if (!shopOwner) {
-      // Better name handling
-      const nameParts = name.split(' ');
-      const firstName = nameParts[0];
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-      
-      // Create shop owner with minimal data - they will need to complete profile later
-      shopOwner = new ShopOwner({
-        firstName,
-        lastName,
-        email,
-        googleId,
-        password: " ", // Generate a random secure password for OAuth users
-        phoneNumber: "", // Will be required to fill in later
-        address: {
-          country: "India" // Default value
-        },
-        shopDetails: {
-          shopType: "" // Will be required to fill in later
-        },
-        profileComplete: false, // Flag to indicate profile needs completion
-        avatar: picture || 'default-avatar.png'
-      });
-      
-      await shopOwner.save();
-    } else if (!shopOwner.googleId) {
-      // Link Google ID to existing account if not already linked
-      shopOwner.googleId = googleId;
-      await shopOwner.save();
-    }
-    
-    // Generate JWT token
-    res.json({
-      _id: shopOwner._id,
-      firstName: shopOwner.firstName,
-      lastName: shopOwner.lastName,
-      email: shopOwner.email,
-      profileComplete: shopOwner.profileComplete,
-      role: 'shop-owner',
-      token: generateToken(shopOwner._id)
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 // @route   GET /profile
 // @desc    Get shop owner profile
@@ -432,5 +376,172 @@ router.get('/shop/:id', async (req, res, next) => {
     next(error);
   }
 });
+
+
+
+// Middleware to validate email
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+// Middleware for error handling
+const handleError = (res, error, customMessage = "Server error") => {
+  console.error(`❌ ${customMessage}:`, error)
+  return res.status(500).json({ 
+    message: customMessage, 
+    error: error.message || error 
+  })
+}
+
+// Add these routes to your existing shopOwnerRoutes.js file
+// The validateEmail and handleError functions are already defined in your file
+
+// @route   POST /forgot-password
+// @desc    Send password reset email to shop owner
+// @access  Public
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // Find shop owner with proper error handling
+    const shopOwner = await ShopOwner.findOne({ email }).exec();
+    if (!shopOwner) {
+      return res.status(404).json({ message: "Shop owner not found" });
+    }
+
+    // Generate tokens with stronger randomness
+    const token = crypto.randomBytes(64).toString("hex");
+    const resetToken = jwt.sign({ id: shopOwner._id }, JWT_SECRET, { 
+      expiresIn: "1h" 
+    });
+
+    // Update shop owner with reset tokens
+    shopOwner.resetPasswordToken = token;
+    shopOwner.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    
+    // Save with error handling
+    try {
+      await shopOwner.save();
+    } catch (saveError) {
+      return handleError(res, saveError, "Failed to save reset token");
+    }
+
+    const resetUrl = `${process.env.FRONTEND_URL}/ShopOwner-ResetPassword/${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: shopOwner.email,
+      subject: "Password Reset Request for Your Shop Owner Account",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+          </div>
+          <h2 style="color: #333; margin-bottom: 15px;">Password Reset Request</h2>
+          <p style="color: #555; line-height: 1.5;">Hello ${shopOwner.firstName},</p>
+          <p style="color: #555; line-height: 1.5;">We received a request to reset the password for your shop owner account. If you didn't make this request, you can safely ignore this email.</p>
+          <div style="margin: 25px 0; text-align: center;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4285F4; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Your Password</a>
+          </div>
+          <p style="color: #555; line-height: 1.5;">This link will expire in 1 hour for security reasons.</p>
+          <p style="color: #555; line-height: 1.5;">If the button above doesn't work, you can copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; background-color: #f7f7f7; padding: 10px; border-radius: 3px; font-size: 14px;">${resetUrl}</p>
+          <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px;">
+            <p>If you didn't request this password reset, please contact our support team immediately at ${process.env.SUPPORT_EMAIL}.</p>
+            <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME }. All rights reserved.</p>
+          </div>
+        </div>
+      `
+    };
+
+    // Send email with comprehensive error handling
+    try {
+      await transporter.sendMail(mailOptions);
+      res.json({ message: "Reset link sent to your email" });
+    } catch (emailError) {
+      return handleError(res, emailError, "Failed to send reset email");
+    }
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+// Add this updated route handler to your shopOwnerRoutes.js file
+
+// @route   POST /reset-password/:token
+// @desc    Reset shop owner password using token
+// @access  Public
+router.post("/reset-password/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    // Input validation
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    // Validate password strength
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
+    }
+
+    if (!/\d/.test(newPassword)) {
+      return res.status(400).json({ message: "Password must contain at least one number" });
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      return res.status(400).json({ message: "Password must contain at least one lowercase letter" });
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      return res.status(400).json({ message: "Password must contain at least one uppercase letter" });
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      return res.status(400).json({ message: "Password must contain at least one special character" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (tokenError) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    // Find shop owner
+    const shopOwner = await ShopOwner.findById(decoded.id);
+    if (!shopOwner) {
+      return res.status(404).json({ message: "Shop owner not found" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update shop owner password
+    shopOwner.password = hashedPassword;
+    shopOwner.resetPasswordToken = undefined;
+    shopOwner.resetPasswordExpires = undefined;
+
+    // Save with error handling
+    try {
+      await shopOwner.save();
+      res.json({ message: "Password reset successful" });
+    } catch (saveError) {
+      console.error("Failed to update password:", saveError);
+      return res.status(500).json({ message: "Failed to update password" });
+    }
+  } catch (error) {
+    console.error("Password reset error:", error);
+    res.status(500).json({ message: "Server error during password reset" });
+  }
+});
+
 
 module.exports = router;
