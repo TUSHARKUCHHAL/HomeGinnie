@@ -1,10 +1,9 @@
-// File: routes/shopOwnerRoutes.js (updated)
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const nodemailer = require("nodemailer")
+const nodemailer = require("nodemailer");
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
@@ -17,16 +16,14 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-
 // Configure Nodemailer with error handling
 const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass:process.env.EMAIL_PASS ,
-    }
-  })
-  
+  service: "Gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  }
+});
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -60,26 +57,33 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-// Auth middleware
+// Improved Auth middleware with proper error handling
 const protect = async (req, res, next) => {
-  let token;
+  try {
+    let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.shopOwner = await ShopOwner.findById(decoded.id).select('-password');
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(401);
-      throw new Error('Not authorized, token failed');
+      
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const shopOwner = await ShopOwner.findById(decoded.id).select('-password');
+        
+        if (!shopOwner) {
+          return res.status(401).json({ message: 'User not found, please login again' });
+        }
+        
+        req.shopOwner = shopOwner;
+        next();
+      } catch (error) {
+        return res.status(401).json({ message: 'Invalid token, please login again' });
+      }
+    } else {
+      return res.status(401).json({ message: 'Not authorized, no token provided' });
     }
-  }
-
-  if (!token) {
-    res.status(401);
-    throw new Error('Not authorized, no token');
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({ message: 'Server error in authentication' });
   }
 };
 
@@ -122,7 +126,7 @@ const validateShopRegistration = [
 // @route   POST /register
 // @desc    Register a new shop owner
 // @access  Public
-router.post('/register', upload.single('logo'), async (req, res, next) => {
+router.post('/register', upload.single('logo'), async (req, res) => {
   try {
     // If request contains JSON in 'data' field
     let shopOwnerData;
@@ -210,19 +214,23 @@ router.post('/register', upload.single('logo'), async (req, res, next) => {
   }
 });
 
-// Rest of the routes remain same...
-
 // @route   POST /login
 // @desc    Authenticate a shop owner & get token
 // @access  Public
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
     // Check for shop owner email
     const shopOwner = await ShopOwner.findOne({ email });
 
-    if (shopOwner && (await bcrypt.compare(password, shopOwner.password))) {
+    if (!shopOwner) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    const isMatch = await bcrypt.compare(password, shopOwner.password);
+    
+    if (isMatch) {
       res.json({
         _id: shopOwner._id,
         firstName: shopOwner.firstName,
@@ -232,114 +240,175 @@ router.post('/login', async (req, res, next) => {
         token: generateToken(shopOwner._id)
       });
     } else {
-      res.status(401);
-      throw new Error('Invalid email or password');
+      res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    next(error);
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 });
 
-
-// @route   GET /profile
-// @desc    Get shop owner profile
+// @route   GET /me
+// @desc    Get logged-in shop owner profile
 // @access  Private
-router.get('/profile', protect, async (req, res, next) => {
+router.get('/me', protect, async (req, res) => {
   try {
-    const shopOwner = await ShopOwner.findById(req.shopOwner._id).select('-password');
-    
-    if (shopOwner) {
-      res.json(shopOwner);
-    } else {
-      res.status(404);
-      throw new Error('Shop owner not found');
-    }
-  } catch (error) {
-    next(error);
+    // req.shopOwner is already populated in the protect middleware
+    res.json(req.shopOwner);
+  } catch (err) {
+    console.error('Get profile error:', err.message);
+    res.status(500).json({ message: 'Server error when retrieving profile' });
   }
 });
 
-// @route   PUT /profile
+// @route   PUT /me
 // @desc    Update shop owner profile
 // @access  Private
-router.put('/profile', protect, async (req, res, next) => {
+router.put('/me', protect, async (req, res) => {
   try {
-    const shopOwner = await ShopOwner.findById(req.shopOwner._id);
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      alternateNumber,
+      address,
+      shopDetails
+    } = req.body;
 
-    if (shopOwner) {
-      // Update basic info
-      shopOwner.firstName = req.body.firstName || shopOwner.firstName;
-      shopOwner.lastName = req.body.lastName || shopOwner.lastName;
-      shopOwner.email = req.body.email || shopOwner.email;
-      shopOwner.phoneNumber = req.body.phoneNumber || shopOwner.phoneNumber;
-      shopOwner.alternateNumber = req.body.alternateNumber || shopOwner.alternateNumber;
-      
-      // Update address if provided
-      if (req.body.address) {
-        shopOwner.address = {
-          ...shopOwner.address,
-          ...req.body.address
-        };
-      }
-      
-      // Update shop details if provided
-      if (req.body.shopDetails) {
-        shopOwner.shopDetails = {
-          ...shopOwner.shopDetails,
-          ...req.body.shopDetails
-        };
-      }
-      
-      // Update business hours if provided
-      if (req.body.businessHours) {
-        shopOwner.shopDetails.businessHours = req.body.businessHours;
-      }
-      
-      // Update password if provided
-      if (req.body.password) {
-        const salt = await bcrypt.genSalt(10);
-        shopOwner.password = await bcrypt.hash(req.body.password, salt);
-      }
-
-      // Check if profile is now complete
-      const requiredFields = [
-        shopOwner.firstName,
-        shopOwner.lastName,
-        shopOwner.email,
-        shopOwner.phoneNumber,
-        shopOwner.address.street,
-        shopOwner.address.city,
-        shopOwner.address.state,
-        shopOwner.address.postalCode,
-        shopOwner.shopDetails.shopType
-      ];
-      
-      shopOwner.profileComplete = requiredFields.every(field => field && field.toString().trim() !== '');
-
-      const updatedShopOwner = await shopOwner.save();
-
-      res.json({
-        _id: updatedShopOwner._id,
-        firstName: updatedShopOwner.firstName,
-        lastName: updatedShopOwner.lastName,
-        email: updatedShopOwner.email,
-        profileComplete: updatedShopOwner.profileComplete,
-        role: 'shop-owner',
-        token: generateToken(updatedShopOwner._id)
-      });
-    } else {
-      res.status(404);
-      throw new Error('Shop owner not found');
+    // Build profile object
+    const profileFields = {};
+    if (firstName) profileFields.firstName = firstName;
+    if (lastName) profileFields.lastName = lastName;
+    if (phoneNumber) profileFields.phoneNumber = phoneNumber;
+    if (alternateNumber !== undefined) profileFields.alternateNumber = alternateNumber;
+    
+    // Build address object
+    if (address) {
+      profileFields.address = {};
+      if (address.street) profileFields.address.street = address.street;
+      if (address.city) profileFields.address.city = address.city;
+      if (address.state) profileFields.address.state = address.state;
+      if (address.postalCode) profileFields.address.postalCode = address.postalCode;
+      if (address.country) profileFields.address.country = address.country;
     }
-  } catch (error) {
-    next(error);
+    
+    // Build shop details object
+    if (shopDetails) {
+      // Get existing shop details to prevent overriding fields not in the request
+      const currentShop = await ShopOwner.findById(req.shopOwner._id);
+      profileFields.shopDetails = currentShop.shopDetails || {};
+      
+      if (shopDetails.gstNumber !== undefined) 
+        profileFields.shopDetails.gstNumber = shopDetails.gstNumber;
+      if (shopDetails.shopType) 
+        profileFields.shopDetails.shopType = shopDetails.shopType;
+      if (shopDetails.deliveryProvided !== undefined) 
+        profileFields.shopDetails.deliveryProvided = shopDetails.deliveryProvided;
+      if (shopDetails.establishedDate) 
+        profileFields.shopDetails.establishedDate = shopDetails.establishedDate;
+      if (shopDetails.businessHours) 
+        profileFields.shopDetails.businessHours = shopDetails.businessHours;
+    }
+
+    // Set profileComplete to true if all required fields are filled
+    if (firstName && lastName && phoneNumber && 
+        address && address.street && address.city && address.state && 
+        profileFields.shopDetails && profileFields.shopDetails.shopType) {
+      profileFields.profileComplete = true;
+    }
+
+    // Update the profile
+    const shopOwner = await ShopOwner.findByIdAndUpdate(
+      req.shopOwner._id,
+      { $set: profileFields },
+      { new: true }
+    ).select('-password');
+    
+    if (!shopOwner) {
+      return res.status(404).json({ message: 'Shop owner not found' });
+    }
+    
+    res.json(shopOwner);
+  } catch (err) {
+    console.error('Update profile error:', err.message);
+    res.status(500).json({ message: 'Server error when updating profile' });
+  }
+});
+
+// @route   PUT /avatar
+// @desc    Update profile picture
+// @access  Private
+router.put('/avatar', protect, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload an image file' });
+    }
+    
+    const avatarPath = `/${req.file.path}`;
+    
+    const shopOwner = await ShopOwner.findByIdAndUpdate(
+      req.shopOwner._id,
+      { avatar: avatarPath },
+      { new: true }
+    ).select('-password');
+    
+    if (!shopOwner) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ message: 'Shop owner not found' });
+    }
+    
+    res.json(shopOwner);
+  } catch (err) {
+    if (req.file) {
+      // Remove uploaded file if there was an error
+      fs.unlinkSync(req.file.path);
+    }
+    console.error('Avatar update error:', err.message);
+    res.status(500).json({ message: 'Server error when updating avatar' });
+  }
+});
+
+// @route   PUT /shop-logo
+// @desc    Update shop logo
+// @access  Private
+router.put('/shop-logo', protect, upload.single('logo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload an image file' });
+    }
+    
+    const logoPath = `/${req.file.path}`;
+    
+    const shopOwner = await ShopOwner.findByIdAndUpdate(
+      req.shopOwner._id,
+      { 'shopDetails.logo': logoPath },
+      { new: true }
+    ).select('-password');
+    
+    if (!shopOwner) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ message: 'Shop owner not found' });
+    }
+    
+    res.json(shopOwner);
+  } catch (err) {
+    if (req.file) {
+      // Remove uploaded file if there was an error
+      fs.unlinkSync(req.file.path);
+    }
+    console.error('Logo update error:', err.message);
+    res.status(500).json({ message: 'Server error when updating shop logo' });
   }
 });
 
 // @route   GET /shops
 // @desc    Get all shops (for customers)
 // @access  Public
-router.get('/shops', async (req, res, next) => {
+router.get('/shops', async (req, res) => {
   try {
     const { city, shopType } = req.query;
     let query = { profileComplete: true };
@@ -354,48 +423,34 @@ router.get('/shops', async (req, res, next) => {
     
     res.json(shops);
   } catch (error) {
-    next(error);
+    console.error('Get shops error:', error);
+    res.status(500).json({ message: 'Server error when retrieving shops' });
   }
 });
 
 // @route   GET /shop/:id
 // @desc    Get shop details by ID (for customers)
 // @access  Public
-router.get('/shop/:id', async (req, res, next) => {
+router.get('/shop/:id', async (req, res) => {
   try {
+    // Validate ObjectId format to prevent CastError
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid shop ID format' });
+    }
+    
     const shop = await ShopOwner.findById(req.params.id)
-      .select('-password -googleId');
+      .select('-password -googleId -resetPasswordToken -resetPasswordExpires -__v');
     
     if (shop && shop.profileComplete) {
       res.json(shop);
     } else {
-      res.status(404);
-      throw new Error('Shop not found or profile not complete');
+      res.status(404).json({ message: 'Shop not found or profile not complete' });
     }
   } catch (error) {
-    next(error);
+    console.error('Get shop error:', error);
+    res.status(500).json({ message: 'Server error when retrieving shop' });
   }
 });
-
-
-
-// Middleware to validate email
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
-}
-
-// Middleware for error handling
-const handleError = (res, error, customMessage = "Server error") => {
-  console.error(`❌ ${customMessage}:`, error)
-  return res.status(500).json({ 
-    message: customMessage, 
-    error: error.message || error 
-  })
-}
-
-// Add these routes to your existing shopOwnerRoutes.js file
-// The validateEmail and handleError functions are already defined in your file
 
 // @route   POST /forgot-password
 // @desc    Send password reset email to shop owner
@@ -405,7 +460,7 @@ router.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
     
     // Validate email format
-    if (!validateEmail(email)) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
@@ -429,7 +484,11 @@ router.post("/forgot-password", async (req, res) => {
     try {
       await shopOwner.save();
     } catch (saveError) {
-      return handleError(res, saveError, "Failed to save reset token");
+      console.error('Failed to save reset token:', saveError);
+      return res.status(500).json({ 
+        message: "Failed to save reset token", 
+        error: saveError.message 
+      });
     }
 
     const resetUrl = `${process.env.FRONTEND_URL}/ShopOwner-ResetPassword/${resetToken}`;
@@ -464,13 +523,17 @@ router.post("/forgot-password", async (req, res) => {
       await transporter.sendMail(mailOptions);
       res.json({ message: "Reset link sent to your email" });
     } catch (emailError) {
-      return handleError(res, emailError, "Failed to send reset email");
+      console.error('Failed to send reset email:', emailError);
+      return res.status(500).json({ 
+        message: "Failed to send reset email", 
+        error: emailError.message 
+      });
     }
   } catch (error) {
-    handleError(res, error);
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error during password reset request' });
   }
 });
-// Add this updated route handler to your shopOwnerRoutes.js file
 
 // @route   POST /reset-password/:token
 // @desc    Reset shop owner password using token
@@ -542,6 +605,5 @@ router.post("/reset-password/:token", async (req, res) => {
     res.status(500).json({ message: "Server error during password reset" });
   }
 });
-
 
 module.exports = router;

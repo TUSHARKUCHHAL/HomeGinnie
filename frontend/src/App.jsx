@@ -39,7 +39,7 @@ import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
 import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
 import ShopOwnerForgetPassword from "./Pages/Shop/ResetPassword/ForgetPassword";
 import ShopOwnerResetPassword from "./Pages/Shop/ResetPassword/ResetPassword";
-
+import ShopProfile from "./Pages/Shop/Profile";
 
 
 //Admin Routes
@@ -230,6 +230,19 @@ const App = () => {
                 userRole={userRole}
               >
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/Shop/Profile"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["shop-owner", "admin"]}
+                userRole={userRole}
+              >
+                <ShopProfile />
               </ProtectedRoute>
             }
           />
