@@ -77,12 +77,7 @@ export const ProductService = {
     // Mock platforms data based on the product price
     const basePrice = product.price;
     const platforms = [
-      { name: 'Amazon', color: '#FF9900' },
-      { name: 'Flipkart', color: '#2874F0' },
-      { name: 'Snapdeal', color: '#E40046' },
-      { name: 'Blinkit', color: '#FAE100' },
-      { name: 'Zepto', color: '#8377FE' },
-      { name: 'Instamart', color: '#FC7D03' }
+
     ].map(platform => ({
       name: platform.name,
       price: Math.floor(basePrice * (0.9 + Math.random() * 0.2)), // +/- 10% from base price
