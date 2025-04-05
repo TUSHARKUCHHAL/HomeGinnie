@@ -81,10 +81,16 @@ const CampaignsTab = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold">Marketing Campaigns</h3>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors">
+          <div className='flex space-x-4'>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors">
             <PlusIcon size={16} />
             <span>Create Campaign</span>
           </button>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors">
+            <PlusIcon size={16} />
+            <span>Create Notification</span>
+          </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
