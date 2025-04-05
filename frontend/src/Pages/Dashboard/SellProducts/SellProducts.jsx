@@ -1,32 +1,23 @@
-import React, { useState, useRef } from 'react';
-import { PlusCircle, X, Edit2, Trash2, Save, Search, Upload, Image } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { PlusCircle, X, Edit2, Trash2, Save, Search, Upload, Image, AlertCircle, Check, Loader } from 'lucide-react';
+
+// API base URL - adjust this based on your deployment
+const API_URL = 'http://localhost:5500/api';
 
 const ProductManagement = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      title: 'Modern Desk Lamp',
-      description: 'Elegant desk lamp with adjustable brightness and color temperature',
-      price: 49.99,
-      image: '/api/placeholder/400/300',
-      stock: 24,
-    },
-    {
-      id: 2,
-      title: 'Wireless Earbuds',
-      description: 'High-quality sound with noise cancellation and long battery life',
-      price: 89.99,
-      image: '/api/placeholder/400/300',
-      stock: 15,
-    },
-  ]);
-
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteProductId, setDeleteProductId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   
   const [formData, setFormData] = useState({
@@ -38,6 +29,28 @@ const ProductManagement = () => {
     stock: '',
   });
 
+  // Fetch products on component mount
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Fetch products from API
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}/products`);
+      setProducts(response.data.data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products. Please try again later.');
+      toast.error('Error loading products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -46,20 +59,24 @@ const ProductManagement = () => {
     });
   };
 
+  // Handle image upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // In a real app, you would upload this to a server
-      // For this demo, we'll create a local object URL
+      // Create preview
       const imageUrl = URL.createObjectURL(file);
       setPreviewImage(imageUrl);
+      
+      // Store file for submission
       setFormData({
         ...formData,
-        image: imageUrl,
+        imageFile: file, // Store the file object
+        image: file.name, // Store just the filename
       });
     }
   };
 
+  // Open add product modal
   const handleAddProduct = () => {
     setFormData({
       id: null,
@@ -68,49 +85,91 @@ const ProductManagement = () => {
       price: '',
       image: '',
       stock: '',
+      imageFile: null,
     });
     setPreviewImage(null);
     setEditMode(false);
     setIsModalOpen(true);
   };
 
+  // Open edit product modal
   const handleEditProduct = (product) => {
-    setFormData({ ...product });
+    setFormData({ 
+      ...product,
+      imageFile: null // No file initially when editing
+    });
     setPreviewImage(product.image);
     setEditMode(true);
     setIsModalOpen(true);
   };
 
+  // Open delete confirmation modal
   const confirmDeleteProduct = (id) => {
     setDeleteProductId(id);
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteProduct = () => {
-    setProducts(products.filter((product) => product.id !== deleteProductId));
-    setIsDeleteModalOpen(false);
+  // Delete product
+  const handleDeleteProduct = async () => {
+    try {
+      setSubmitting(true);
+      await axios.delete(`${API_URL}/products/${deleteProductId}`);
+      setProducts(products.filter((product) => product._id !== deleteProductId));
+      setIsDeleteModalOpen(false);
+      toast.success('Product deleted successfully');
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      toast.error('Failed to delete product');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleSubmit = (e) => {
+  // Submit form (add/edit product)
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (editMode) {
-      setProducts(
-        products.map((product) =>
-          product.id === formData.id ? formData : product
-        )
-      );
-    } else {
-      const newProduct = {
-        ...formData,
-        id: Date.now(),
-        image: formData.image || '/api/placeholder/400/300',
-        stock: formData.stock || 0, // Default to 0 if stock is empty
-      };
-      setProducts([...products, newProduct]);
+    try {
+      setSubmitting(true);
+      
+      // Create form data for file upload
+      const productData = new FormData();
+      productData.append('title', formData.title);
+      productData.append('description', formData.description);
+      productData.append('price', formData.price);
+      productData.append('stock', formData.stock || 0);
+      
+      // Add image file if there is one
+      if (formData.imageFile) {
+        productData.append('image', formData.imageFile);
+      } else if (formData.image && typeof formData.image === 'string' && !formData.image.startsWith('blob:')) {
+        // If using an existing image URL
+        productData.append('image', formData.image);
+      }
+      
+      let response;
+      
+      if (editMode) {
+        response = await axios.put(`${API_URL}/products/${formData._id}`, productData);
+        setProducts(
+          products.map((product) =>
+            product._id === formData._id ? response.data.data : product
+          )
+        );
+        toast.success('Product updated successfully');
+      } else {
+        response = await axios.post(`${API_URL}/products`, productData);
+        setProducts([...products, response.data.data]);
+        toast.success('Product added successfully');
+      }
+      
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Error submitting product:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to save product';
+      toast.error(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
-    
-    setIsModalOpen(false);
   };
 
   // Filter products based on search term
@@ -121,8 +180,10 @@ const ProductManagement = () => {
 
   return (
     <div className="min-h-screen bg-white p-6 font-sans">
+      <ToastContainer position="bottom-right" autoClose={3000} />
+      
       <div className="max-w-6xl mx-auto">
-        <header className="mb-10 mt-24">
+        <header className="mb-10 mt-8">
           <h1 className="text-3xl font-bold text-slate-900">Product Inventory</h1>
           <p className="text-slate-600 mt-2">Manage your shop's product listings</p>
         </header>
@@ -157,53 +218,122 @@ const ProductManagement = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
-            >
-              <div className="h-48 bg-slate-100 relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <button
-                    onClick={() => handleEditProduct(product)}
-                    className="bg-white p-2 rounded-full shadow-md hover:bg-slate-100 transition-colors"
-                  >
-                    <Edit2 size={16} className="text-slate-800" />
-                  </button>
-                  <button
-                    onClick={() => confirmDeleteProduct(product.id)}
-                    className="bg-white p-2 rounded-full shadow-md hover:bg-slate-100 transition-colors"
-                  >
-                    <Trash2 size={16} className="text-slate-800" />
-                  </button>
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-lg text-slate-900 mb-1">{product.title}</h3>
-                <p className="text-slate-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-slate-900">${product.price.toFixed(2)}</span>
-                  <span className="text-slate-600 text-sm">
-                    {product.stock > 0 ? `Stock: ${product.stock}` : 'Out of stock'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Loading state */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader size={40} className="text-slate-400 animate-spin mb-4" />
+            <p className="text-slate-600">Loading products...</p>
+          </div>
+        )}
 
-        {filteredProducts.length === 0 && (
+        {/* Error state */}
+        {error && !loading && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 flex items-start gap-3 mb-8">
+            <AlertCircle size={20} className="mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Failed to load products</p>
+              <p className="text-sm mt-1">{error}</p>
+              <button
+                onClick={fetchProducts}
+                className="mt-2 text-sm font-medium bg-red-100 px-3 py-1 rounded-md hover:bg-red-200"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Products grid */}
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+            {filteredProducts.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                <div className="h-48 bg-slate-100 relative overflow-hidden">
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop
+                        e.target.src = '/api/placeholder/400/300';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                      <Image size={48} className="text-slate-400" />
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <button
+                      onClick={() => handleEditProduct(product)}
+                      className="bg-white p-2 rounded-full shadow-md hover:bg-slate-100 transition-colors"
+                    >
+                      <Edit2 size={16} className="text-slate-800" />
+                    </button>
+                    <button
+                      onClick={() => confirmDeleteProduct(product._id)}
+                      className="bg-white p-2 rounded-full shadow-md hover:bg-slate-100 transition-colors"
+                    >
+                      <Trash2 size={16} className="text-slate-800" />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg text-slate-900 mb-1">{product.title}</h3>
+                  <p className="text-slate-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-900">${Number(product.price).toFixed(2)}</span>
+                    <span className={`text-sm ${product.stock > 0 ? 'text-slate-600' : 'text-red-500'}`}>
+                      {product.stock > 0 ? `Stock: ${product.stock}` : 'Out of stock'}
+                    </span>
+                  </div>
+                  {product.rating && product.rating.count > 0 && (
+                    <div className="flex items-center mt-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <svg 
+                            key={i} 
+                            className={`w-4 h-4 ${i < Math.round(product.rating.value) ? 'text-yellow-400' : 'text-slate-300'}`}
+                            fill="currentColor" 
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="text-xs text-slate-500 ml-1">({product.rating.count})</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && filteredProducts.length === 0 && (
           <div className="text-center py-16 bg-slate-50 rounded-lg border border-dashed border-slate-300 mt-8">
             {searchTerm ? (
-              <p className="text-slate-600 mb-4">No products match your search</p>
+              <div className="px-4">
+                <Search size={32} className="text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600 mb-2">No products match your search</p>
+                <p className="text-slate-500 text-sm">Try a different search term or clear the search</p>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-4 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-md transition-colors"
+                >
+                  Clear Search
+                </button>
+              </div>
             ) : (
-              <>
+              <div className="px-4">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <PlusCircle size={24} className="text-slate-400" />
+                </div>
                 <p className="text-slate-600 mb-4">No products in your inventory</p>
                 <button
                   onClick={handleAddProduct}
@@ -212,15 +342,18 @@ const ProductManagement = () => {
                   <PlusCircle size={18} />
                   <span>Add Your First Product</span>
                 </button>
-              </>
+              </div>
             )}
           </div>
         )}
 
         {/* Add/Edit Product Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-lg p-6 animate-fade-in">
+          <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div 
+              className="bg-white rounded-lg w-full max-w-lg p-6 animate-fade-in"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-slate-900">
                   {editMode ? 'Edit Product' : 'Add New Product'}
@@ -228,6 +361,7 @@ const ProductManagement = () => {
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="text-slate-600 hover:text-slate-900"
+                  disabled={submitting}
                 >
                   <X size={24} />
                 </button>
@@ -245,6 +379,7 @@ const ProductManagement = () => {
                     onChange={handleChange}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
                     required
+                    disabled={submitting}
                   />
                 </div>
 
@@ -259,6 +394,7 @@ const ProductManagement = () => {
                     rows="3"
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
                     required
+                    disabled={submitting}
                   ></textarea>
                 </div>
 
@@ -276,6 +412,7 @@ const ProductManagement = () => {
                       min="0"
                       className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
                       required
+                      disabled={submitting}
                     />
                   </div>
                   <div>
@@ -289,6 +426,7 @@ const ProductManagement = () => {
                       onChange={handleChange}
                       min="0"
                       className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      disabled={submitting}
                     />
                   </div>
                 </div>
@@ -298,29 +436,34 @@ const ProductManagement = () => {
                     Product Image
                   </label>
                   
-                  {/* Fixed height container for image upload/preview */}
                   <div 
                     className="h-48 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => fileInputRef.current.click()}>
-                    
+                    onClick={() => !submitting && fileInputRef.current.click()}
+                  >
                     {previewImage ? (
                       <div className="relative w-full h-full">
                         <img 
                           src={previewImage} 
                           alt="Product preview" 
                           className="w-full h-full object-contain p-2"
-                        />
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewImage(null);
-                            setFormData({...formData, image: ''});
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/api/placeholder/400/300';
                           }}
-                          className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md"
-                        >
-                          <X size={16} />
-                        </button>
+                        />
+                        {!submitting && (
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewImage(null);
+                              setFormData({...formData, image: '', imageFile: null});
+                            }}
+                            className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full">
@@ -329,7 +472,7 @@ const ProductManagement = () => {
                           Click to browse or drop an image
                         </p>
                         <p className="text-xs text-slate-400 text-center">
-                          PNG, JPG or GIF (600x400px recommended)
+                          PNG, JPG or GIF (max 5MB)
                         </p>
                       </div>
                     )}
@@ -340,6 +483,7 @@ const ProductManagement = () => {
                       className="hidden" 
                       accept="image/*"
                       onChange={handleImageUpload}
+                      disabled={submitting}
                     />
                   </div>
                 </div>
@@ -349,15 +493,26 @@ const ProductManagement = () => {
                     type="button"
                     onClick={() => setIsModalOpen(false)}
                     className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50"
+                    disabled={submitting}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 flex items-center gap-2 disabled:bg-slate-400"
+                    disabled={submitting}
                   >
-                    <Save size={18} />
-                    {editMode ? 'Save Changes' : 'Add Product'}
+                    {submitting ? (
+                      <>
+                        <Loader size={18} className="animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save size={18} />
+                        <span>{editMode ? 'Save Changes' : 'Add Product'}</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -367,7 +522,7 @@ const ProductManagement = () => {
 
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg w-full max-w-md p-6 animate-fade-in">
               <h2 className="text-xl font-bold text-slate-900 mb-4">Delete Product</h2>
               <p className="text-slate-600 mb-6">
@@ -377,14 +532,26 @@ const ProductManagement = () => {
                 <button
                   onClick={() => setIsDeleteModalOpen(false)}
                   className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteProduct}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 disabled:bg-red-400"
+                  disabled={submitting}
                 >
-                  Delete
+                  {submitting ? (
+                    <>
+                      <Loader size={18} className="animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={18} />
+                      <span>Delete</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -405,6 +572,17 @@ const ProductManagement = () => {
         }
         .animate-fade-in {
           animation: fadeIn 0.3s ease-out;
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>

@@ -8,6 +8,7 @@ const serviceProviderRoutes = require('./Routes/ServiceProvider');
 const shopRoutes = require('./Routes/Shops');
 const hireRequestRoutes = require('./Routes/HireRequest');
 const serviceRoutes = require('./Routes/Services');
+const productRoutes = require('./Routes/Products');
 const path = require('path');
 // Load environment variables
 dotenv.config();
@@ -43,6 +44,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api/products', productRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
