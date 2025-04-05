@@ -92,6 +92,22 @@ const Navbar = () => {
     }
   };
 
+  // Get role-based profile link
+  const getProfileLink = () => {
+    switch(userRole) {
+      case 'user':
+        return '/profile';
+      case 'service-provider':
+        return '/ServiceProvider/Profile';
+      case 'shop-owner':
+        return '/ServiceProvider/Profile';
+      case 'admin':
+        return '/profile'; // Fallback to regular profile for admin
+      default:
+        return '/profile';
+    }
+  };
+
   return (
     <nav 
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -136,60 +152,77 @@ const Navbar = () => {
           {/* Action Buttons / Profile */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
             {isLoggedIn ? (
-              <div className="relative">
-                <button 
-                  id="profile-button"
-                  className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
-                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  aria-label="Profile menu"
-                  aria-expanded={isProfileMenuOpen}
-                >
-                  <svg className="h-6 w-6 text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </button>
-                
-                {isProfileMenuOpen && (
-                  <div 
-                    id="profile-menu"
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden animate-fadeDown origin-top-right"
+              <>
+                {/* Notification Icon */}
+                <div className="relative">
+                  <button 
+                    className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
+                    aria-label="Notifications"
                   >
-                    <div className="p-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-slate-800">Signed in as</p>
-                      <p className="text-sm text-slate-600 truncate">{userRole}</p>
+                    <svg className="h-6 w-6 text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    {/* Notification badge - uncomment and adjust when implementing notification counter */}
+                    {/* <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">3</span> */}
+                  </button>
+                </div>
+
+                {/* Profile Menu */}
+                <div className="relative">
+                  <button 
+                    id="profile-button"
+                    className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    aria-label="Profile menu"
+                    aria-expanded={isProfileMenuOpen}
+                  >
+                    <svg className="h-6 w-6 text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </button>
+                  
+                  {isProfileMenuOpen && (
+                    <div 
+                      id="profile-menu"
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden animate-fadeDown origin-top-right"
+                    >
+                      <div className="p-3 border-b border-gray-100">
+                        <p className="text-sm font-medium text-slate-800">Signed in as</p>
+                        <p className="text-sm text-slate-600 truncate">{userRole}</p>
+                      </div>
+                      <div className="py-1">
+                        <Link 
+                          to={getDashboardLink()}
+                          className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <Link 
+                          to={getProfileLink()}
+                          className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                        >
+                          My Profile
+                        </Link>
+                        <Link 
+                          to="#"
+                          className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                        >
+                          Settings
+                        </Link>
+                        <button 
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
+                          onClick={handleLogout}
+                        >
+                          Sign out
+                        </button>
+                      </div>
                     </div>
-                    <div className="py-1">
-                      <Link 
-                        to={getDashboardLink()}
-                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <Link 
-                        to="#"
-                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        My Profile
-                      </Link>
-                      <Link 
-                        to="#"
-                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        Settings
-                      </Link>
-                      <button 
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
-                        onClick={handleLogout}
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </>
             ) : (
               <>
                 <button 
@@ -321,6 +354,20 @@ const Navbar = () => {
                 About
               </Link>
               
+              {/* Notifications for mobile (only if logged in) */}
+              {isLoggedIn && (
+                <Link 
+                  to="#" 
+                  className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  Notifications
+                </Link>
+              )}
+              
               {/* Login/Signup or Profile section for mobile */}
               {isLoggedIn ? (
                 <div className="border-t border-gray-100 mt-2">
@@ -329,7 +376,7 @@ const Navbar = () => {
                     <p className="text-sm text-slate-500 truncate">{userRole}</p>
                   </div>
                   <Link 
-                    to="#"
+                    to={getProfileLink()}
                     className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
