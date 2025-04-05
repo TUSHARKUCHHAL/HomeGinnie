@@ -27,10 +27,11 @@ const SearchAddressBar = ({
   const addressInputRef = useRef(null);
   const modalRef = useRef(null);
   
-  // Load addresses and active address from session storage on component mount
+  // Load addresses, active address, and current location from session storage on component mount
   useEffect(() => {
     const storedAddresses = sessionStorage.getItem('userAddresses');
     const storedActiveAddress = sessionStorage.getItem('activeAddress');
+    const storedCurrentLocation = sessionStorage.getItem('currentLocation');
     
     if (storedAddresses) {
       setAddresses(JSON.parse(storedAddresses));
@@ -38,6 +39,28 @@ const SearchAddressBar = ({
     
     if (storedActiveAddress) {
       setActiveAddress(storedActiveAddress);
+    }
+    
+    // If there's a stored current location but it's not in addresses yet,
+    // add it to addresses
+    if (storedCurrentLocation) {
+      const parsedAddresses = storedAddresses ? JSON.parse(storedAddresses) : {};
+      
+      if (!parsedAddresses.current) {
+        const updatedAddresses = {
+          ...parsedAddresses,
+          current: storedCurrentLocation
+        };
+        
+        setAddresses(updatedAddresses);
+        sessionStorage.setItem('userAddresses', JSON.stringify(updatedAddresses));
+        
+        // If no active address is set, set current location as active
+        if (!storedActiveAddress) {
+          setActiveAddress('current');
+          sessionStorage.setItem('activeAddress', 'current');
+        }
+      }
     }
   }, [setAddresses, setActiveAddress]);
   
@@ -74,6 +97,25 @@ const SearchAddressBar = ({
 
   // Handle fetching the current location
   const handleGetCurrentLocation = async () => {
+    // Check if we already have the current location in session storage
+    const storedCurrentLocation = sessionStorage.getItem('currentLocation');
+    
+    if (storedCurrentLocation) {
+      // Use the stored location instead of requesting a new one
+      const updatedAddresses = {
+        ...addresses,
+        current: storedCurrentLocation
+      };
+      
+      setAddresses(updatedAddresses);
+      setActiveAddress('current');
+      sessionStorage.setItem('userAddresses', JSON.stringify(updatedAddresses));
+      sessionStorage.setItem('activeAddress', 'current');
+      setAddressBarFocused(false);
+      return;
+    }
+    
+    // If no stored location, fetch the current location
     setIsLoadingLocation(true);
     setLocationError(null);
     
@@ -94,6 +136,9 @@ const SearchAddressBar = ({
           formattedAddress = `Location at ${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)}`;
         }
       }
+      
+      // Store the formatted address in session storage
+      sessionStorage.setItem('currentLocation', formattedAddress || "Current location");
       
       // Update addresses state with current location
       const updatedAddresses = {
@@ -340,7 +385,7 @@ const SearchAddressBar = ({
                       <Navigation className="w-4 h-4 mr-2" />
                     )}
                     <div className="text-sm">
-                      {isLoadingLocation ? 'Getting location...' : 'Use current location'}
+                      {isLoadingLocation ? 'Getting location...' : sessionStorage.getItem('currentLocation') ? 'Use stored location' : 'Use current location'}
                     </div>
                   </button>
                   

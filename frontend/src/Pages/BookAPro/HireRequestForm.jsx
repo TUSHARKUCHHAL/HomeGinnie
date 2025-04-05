@@ -5,6 +5,7 @@ import {
   Navigation, Loader, X, Plus, MapIcon, CheckCircle, AlertCircle 
 } from 'lucide-react';
 import { LocationService } from './LocationService'; // Importing the service from the second file
+import axios from 'axios';
 
 const HireRequestForm = ({ serviceType }) => {
   // State for form fields
@@ -464,50 +465,138 @@ const HireRequestForm = ({ serviceType }) => {
     return isValid;
   };
 
-  // Handle form submission with validation
-  const handleSubmit = (e) => {
-    e.preventDefault();
+// Updated handleSubmit function for HireRequestForm component
+
+// ... other code remains the same
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Validate all fields
+  if (!validateForm()) {
+    // Scroll to the first error
+    const firstErrorField = document.querySelector('.error-message');
+    if (firstErrorField) {
+      firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  
+  // Save user details to session storage
+  sessionStorage.setItem('userName', formData.name);
+  sessionStorage.setItem('userEmail', formData.email);
+  
+  // Update state to show loading
+  setIsSubmitting(true);
+  
+  try {
+    // Format date to ISO string for API (if it's not already)
+    const apiFormData = {
+      ...formData,
+      serviceType,
+      preferredDate: formData.preferredDate instanceof Date 
+        ? formData.preferredDate.toISOString() 
+        : formData.preferredDate
+    };
     
-    // Validate all fields
-    if (!validateForm()) {
-      // Scroll to the first error
-      const firstErrorField = document.querySelector('.error-message');
-      if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Use axios to make the API request
+    const response = await axios.post(
+      'http://localhost:5500/api/users/hire-requests',
+      apiFormData,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
-      return;
+    );
+    
+    const data = response.data;
+    
+    // Check for success property as defined in your backend
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to submit request');
     }
     
-    // Save user details to session storage
-    sessionStorage.setItem('userName', formData.name);
-    sessionStorage.setItem('userEmail', formData.email);
+    console.log('Form submitted successfully:', data);
     
-    setIsSubmitting(true);
+    // Store the request ID for reference on the response page
+    if (data.requestId) {
+      sessionStorage.setItem('lastRequestId', data.requestId);
+    }
     
-    // Simulate API call
+    // Update UI state for success
+    setIsSubmitting(false);
+    setSubmitSuccess(true);
+    setShowSuccessPopup(true);
+    
+    // Reset form - will happen after redirect
     setTimeout(() => {
-      console.log('Form submitted:', { ...formData, serviceType });
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      setShowSuccessPopup(true);
+      setSubmitSuccess(false);
+      setFormData({
+        name: sessionStorage.getItem('userName') || '',
+        email: sessionStorage.getItem('userEmail') || '',
+        contactNumber: '',
+        address: '',
+        serviceDescription: '',
+        preferredDate: '',
+        preferredTime: '',
+        additionalInfo: ''
+      });
+      setActiveAddress('');
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    setIsSubmitting(false);
+    
+    // Handle error based on your backend response structure
+    if (error.response) {
+      const { data, status } = error.response;
       
-      // Reset form - will happen after redirect
-      setTimeout(() => {
-        setSubmitSuccess(false);
-        setFormData({
-          name: sessionStorage.getItem('userName') || '',
-          email: sessionStorage.getItem('userEmail') || '',
-          contactNumber: '',
-          address: '',
-          serviceDescription: '',
-          preferredDate: '',
-          preferredTime: '',
-          additionalInfo: ''
+      // Handle validation errors from backend (matching your express-validator format)
+      if (data.errors && Array.isArray(data.errors)) {
+        // Map backend validation errors to frontend error state
+        const backendErrors = {};
+        data.errors.forEach(error => {
+          backendErrors[error.param] = error.msg;
         });
-        setActiveAddress('');
-      }, 3000);
-    }, 1500);
-  };
+        
+        setErrors(prev => ({
+          ...prev,
+          ...backendErrors
+        }));
+        
+        // Scroll to first error
+        const firstErrorField = document.querySelector('.error-message');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        alert('Please fix the highlighted errors');
+        return;
+      }
+      
+      // Handle specific status codes
+      if (status === 400) {
+        alert(`Validation error: ${data.message || 'Please check your input'}`);
+      } else if (status === 404) {
+        alert('Resource not found');
+      } else if (status === 500) {
+        alert('Server error: Please try again later');
+      } else {
+        alert(`Error (${status}): ${data.message || 'An error occurred'}`);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      alert('No response received from server. Please check your connection.');
+    } else {
+      // Something happened in setting up the request
+      alert(`Error: ${error.message || 'An unexpected error occurred'}`);
+    }
+  }
+};
+
+
 
   // Input field animation variants
   const inputVariants = {
