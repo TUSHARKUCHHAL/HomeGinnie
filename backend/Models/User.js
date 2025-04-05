@@ -1,4 +1,3 @@
-// userSchema.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -30,6 +29,30 @@ const discountCouponSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  }
+});
+
+const addressSchema = new Schema({
+  street: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
+  state: {
+    type: String,
+    trim: true
+  },
+  postalCode: {
+    type: String,
+    trim: true
+  },
+  country: {
+    type: String,
+    default: 'India',
+    trim: true
   }
 });
 
@@ -72,28 +95,10 @@ const userSchema = new Schema({
     type: String,
     trim: true
   },
-  address: {
-    street: {
-      type: String,
-      trim: true
-    },
-    city: {
-      type: String,
-      trim: true
-    },
-    state: {
-      type: String,
-      trim: true
-    },
-    postalCode: {
-      type: String,
-      trim: true
-    },
-    country: {
-      type: String,
-      default: 'India',
-      trim: true
-    }
+  addresses: {
+    home: addressSchema,
+    work: addressSchema,
+    others: [addressSchema]
   },
   rating: {
     average: {
