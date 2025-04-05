@@ -29,7 +29,7 @@ const ServicesTab = () => {
 
   return (
     <div className="bg-white rounded-xl shadow p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 mt">
         <h3 className="text-lg font-semibold">Available Services</h3>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors">
           <PlusIcon size={16} />

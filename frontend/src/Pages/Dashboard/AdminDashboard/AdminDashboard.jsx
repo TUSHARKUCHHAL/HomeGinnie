@@ -962,10 +962,12 @@ const AdminDashboard = () => {
   };
 
   return (
+    <div>
+      <div className='bg-white drop-shadow-md  w-full h-20'></div>
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-slate-100 p-4">
-        <div className="flex items-center space-x-2 mb-8">
+        <div className="flex items-center space-x-2 mb-8 mt-4">
           <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
             <PlusCircleIcon size={20} className="text-white" />
           </div>
@@ -987,7 +989,8 @@ const AdminDashboard = () => {
       </div>
       
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-6">
+      
+      <div className="flex-1 overflow-auto p-6 mt-1">
         <PageTitle title={getPageTitle()} />
         
         {/* Stats Row */}
@@ -1007,6 +1010,7 @@ const AdminDashboard = () => {
           {tabComponents[activeTab]}
         </motion.div>
       </div>
+    </div>
     </div>
   );
 };
