@@ -14,6 +14,7 @@ import LoginPage from './Pages/User/Login';
 import SignUpPage from './Pages/User/SignUp';
 import ForgotPassword from "./Pages/User/ResetPassword/ForgetPassword";
 import ResetPassword from "./Pages/User/ResetPassword/ResetPassword";
+import Profile from "./Pages/User/Profile"; 
 
 // Book a Pro Routes
 import BookAPro from './Pages/BookAPro/BookAPro';
@@ -32,7 +33,7 @@ import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
 import ServiceProviderForgetPassword from "./Pages/ServiceProvider/ResetPassword/ForgetPassword";
 import ServiceProviderResetPassword from "./Pages/ServiceProvider/ResetPassword/ResetPassword";
-
+import ServiceProviderProfile from "./Pages/ServiceProvider/Profile";
 
 // Shop Owner Routes
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
@@ -243,6 +244,30 @@ const App = () => {
                 userRole={userRole}
               >
                 <ShopProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Profile"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["user", "admin"]}
+                userRole={userRole}
+              >
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ServiceProvider/Profile"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["service-provider", "admin"]}
+                userRole={userRole}
+              >
+                <ServiceProviderProfile />
               </ProtectedRoute>
             }
           />
