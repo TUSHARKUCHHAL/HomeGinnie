@@ -350,8 +350,8 @@ const validateEmail = (email) => {
             <p style="color: #555; line-height: 1.5;">If the button above doesn't work, you can copy and paste this link into your browser:</p>
             <p style="word-break: break-all; background-color: #f7f7f7; padding: 10px; border-radius: 3px; font-size: 14px;">${resetUrl}</p>
             <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px;">
-              <p>If you didn't request this password reset, please contact our support team immediately at ${process.env.SUPPORT_EMAIL || 'support@blackvire.com'}.</p>
-              <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME || 'BLACKVIRE'}. All rights reserved.</p>
+              <p>If you didn't request this password reset, please contact our support team immediately at ${process.env.SUPPORT_EMAIL}.</p>
+              <p>&copy; ${new Date().getFullYear()} ${process.env.COMPANY_NAME }. All rights reserved.</p>
             </div>
           </div>
         `

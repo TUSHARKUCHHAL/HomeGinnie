@@ -24,11 +24,15 @@ import RequestResponse from "./Pages/BookAPro/RequestResponse";
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
 import ServiceProviderDashboard from './Pages/Dashboards/ServiceProviderDashboard';
+import ServiceProviderForgetPassword from "./Pages/ServiceProvider/ResetPassword/ForgetPassword";
+import ServiceProviderResetPassword from "./Pages/ServiceProvider/ResetPassword/ResetPassword";
 
 // Shop Owner Routes
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
 import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
 import ShopOwnerDashboard from './Pages/Dashboards/ShopOwnerDashboard';
+import ShopOwnerForgetPassword from "./Pages/Shop/ResetPassword/ForgetPassword";
+import ShopOwnerResetPassword from "./Pages/Shop/ResetPassword/ResetPassword";
 
 
 import ConfirmLogout from './Components/ConfirmLogout';
@@ -108,6 +112,10 @@ const App = () => {
           <Route path="/Contact-Us" element={<ContactUs />} />
           <Route path="/Forgot-Password" element={<ForgotPassword />} />
           <Route path="/ResetPassword/:token" element={<ResetPassword />} />
+          <Route path="/ServiceProvider-Forgot-Password" element={<ServiceProviderForgetPassword />} />
+          <Route path="/ServiceProvider-ResetPassword/:token" element={<ServiceProviderResetPassword />} />
+          <Route path="/ShopOwner-Forgot-Password" element={<ShopOwnerForgetPassword />} />
+          <Route path="/ShopOwner-ResetPassword/:token" element={<ShopOwnerResetPassword />} />
 
           {/* Auth routes - redirect to home if already logged in */}
           <Route
