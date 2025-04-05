@@ -20,14 +20,18 @@ import BookAPro from './Pages/BookAPro/BookAPro';
 import HireRequestForm from "./Pages/BookAPro/HireRequestForm";
 import RequestResponse from "./Pages/BookAPro/RequestResponse";
 
+// Find a job Routes
+import FindJob from './Pages/Dashboard/FindJob/FindJob';
+
+//Sell Product Routes
+import SellProduct from './Pages/Dashboard/SellProducts/SellProducts';
+
+
 // Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
 import ServiceProviderForgetPassword from "./Pages/ServiceProvider/ResetPassword/ForgetPassword";
 import ServiceProviderResetPassword from "./Pages/ServiceProvider/ResetPassword/ResetPassword";
-
-// Find a job Routes
-import FindJob from './Pages/Dashboard/FindJob/FindJob';
 
 
 // Shop Owner Routes
@@ -182,6 +186,9 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
+
+
           <Route
             path="/Find-a-Job"
             element={
@@ -191,6 +198,18 @@ const App = () => {
                 userRole={userRole}
               >
                 <FindJob />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Sell-Products"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["shop-owner", "admin"]}
+                userRole={userRole}
+              >
+                <SellProduct />
               </ProtectedRoute>
             }
           />

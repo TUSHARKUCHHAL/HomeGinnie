@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Logo from '../assets/HomeGinnie_b.png';
+import { AuthContext } from '../App';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Access auth context from App.js
+  const { isLoggedIn, userRole, logout } = useContext(AuthContext);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,19 +28,30 @@ const Navbar = () => {
       if (window.innerWidth >= 768 && isMobileMenuOpen) {
         setIsMobileMenuOpen(false);
       }
+      if (window.innerWidth >= 768 && isProfileMenuOpen) {
+        setIsProfileMenuOpen(false);
+      }
     };
     
     window.addEventListener('resize', handleResize);
     
-    // Close mobile menu when clicking outside
+    // Close mobile menu & profile menu when clicking outside
     const handleClickOutside = (event) => {
       const mobileMenu = document.getElementById('mobile-menu');
       const hamburgerButton = document.getElementById('hamburger-button');
+      const profileMenu = document.getElementById('profile-menu');
+      const profileButton = document.getElementById('profile-button');
       
       if (isMobileMenuOpen && mobileMenu && hamburgerButton && 
           !mobileMenu.contains(event.target) && 
           !hamburgerButton.contains(event.target)) {
         setIsMobileMenuOpen(false);
+      }
+      
+      if (isProfileMenuOpen && profileMenu && profileButton && 
+          !profileMenu.contains(event.target) && 
+          !profileButton.contains(event.target)) {
+        setIsProfileMenuOpen(false);
       }
     };
     
@@ -46,12 +62,34 @@ const Navbar = () => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isProfileMenuOpen]);
 
   // Close mobile menu when navigating
   const navigateAndCloseMenu = (path) => {
     navigate(path);
     setIsMobileMenuOpen(false);
+    setIsProfileMenuOpen(false);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    navigateAndCloseMenu('/logout');
+  };
+
+  // Get role-based dashboard link
+  const getDashboardLink = () => {
+    switch(userRole) {
+      case 'user':
+        return '/book-a-pro';
+      case 'service-provider':
+        return '/Find-a-Job';
+      case 'shop-owner':
+        return '/Sell-Products';
+      case 'admin':
+        return '/book-a-pro'; // Fallback to book-a-pro for admin
+      default:
+        return '/';
+    }
   };
 
   return (
@@ -74,27 +112,100 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-            <a href="/" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Home</a>
-            <a href="/book-a-pro" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Book a Pro</a>
-            <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Buy Smart</a>
-            <a href="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Services</a>
-            <a href="About-Us" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">About</a>
+            <Link to="/" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Home</Link>
+            
+            {/* Conditional links based on user role */}
+            {isLoggedIn && userRole === 'user' && (
+              <Link to="/book-a-pro" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Book a Pro</Link>
+            )}
+            
+            {isLoggedIn && userRole === 'service-provider' && (
+              <Link to="/Find-a-Job" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Find Jobs</Link>
+            )}
+            
+            {isLoggedIn && userRole === 'shop-owner' && (
+              <Link to="/Sell-Products" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Sell Products</Link>
+            )}
+            
+            {/* Common links for all users */}
+            <Link to="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Buy Smart</Link>
+            <Link to="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Services</Link>
+            <Link to="/About-Us" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">About</Link>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons / Profile */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
-            <button 
-              className="px-3 py-1.5 lg:px-4 lg:py-2 font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base"
-              onClick={() => navigateAndCloseMenu('/login')}
-            >
-              Login
-            </button>
-            <button 
-              className="px-3 py-1.5 lg:px-4 lg:py-2 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors text-sm lg:text-base"
-              onClick={() => navigateAndCloseMenu('/SignUp')}
-            >
-              Sign Up
-            </button>
+            {isLoggedIn ? (
+              <div className="relative">
+                <button 
+                  id="profile-button"
+                  className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  aria-label="Profile menu"
+                  aria-expanded={isProfileMenuOpen}
+                >
+                  <svg className="h-6 w-6 text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+                
+                {isProfileMenuOpen && (
+                  <div 
+                    id="profile-menu"
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden animate-fadeDown origin-top-right"
+                  >
+                    <div className="p-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-slate-800">Signed in as</p>
+                      <p className="text-sm text-slate-600 truncate">{userRole}</p>
+                    </div>
+                    <div className="py-1">
+                      <Link 
+                        to={getDashboardLink()}
+                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link 
+                        to="#"
+                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        My Profile
+                      </Link>
+                      <Link 
+                        to="#"
+                        className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        Settings
+                      </Link>
+                      <button 
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
+                        onClick={handleLogout}
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button 
+                  className="px-3 py-1.5 lg:px-4 lg:py-2 font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base"
+                  onClick={() => navigateAndCloseMenu('/login')}
+                >
+                  Login
+                </button>
+                <button 
+                  className="px-3 py-1.5 lg:px-4 lg:py-2 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors text-sm lg:text-base"
+                  onClick={() => navigateAndCloseMenu('/SignUp')}
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -127,75 +238,145 @@ const Navbar = () => {
             className="md:hidden mt-3 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden animate-fadeDown"
           >
             <div className="flex flex-col py-2">
-              <a 
-                href="/" 
+              <Link 
+                to="/" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateAndCloseMenu('/');
-                }}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 Home
-              </a>
-              <a 
-                href="/book-a-pro" 
+              </Link>
+              
+              {/* Role-based links for mobile */}
+              {isLoggedIn && userRole === 'user' && (
+                <Link 
+                  to="/book-a-pro" 
+                  className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Book a Pro
+                </Link>
+              )}
+              
+              {isLoggedIn && userRole === 'service-provider' && (
+                <Link 
+                  to="/Find-a-Job" 
+                  className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Find Jobs
+                </Link>
+              )}
+              
+              {isLoggedIn && userRole === 'shop-owner' && (
+                <Link 
+                  to="/Sell-Products" 
+                  className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  Sell Products
+                </Link>
+              )}
+              
+              {/* Common links for all */}
+              <Link 
+                to="#" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Book a Pro
-              </a>
-              <a 
-                href="#" 
-                className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
-              >
-                <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Buy Smart
-              </a>
-              <a 
-                href="#" 
+              </Link>
+              <Link 
+                to="#" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 Services
-              </a>
-              <a 
-                href="/About" 
+              </Link>
+              <Link 
+                to="/About-Us" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateAndCloseMenu('/About-Us');
-                }}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 About
-              </a>
-              <div className="px-4 py-3 mt-1 border-t border-gray-100">
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
-                    className="w-full px-4 py-2.5 font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
-                    onClick={() => navigateAndCloseMenu('/login')}
+              </Link>
+              
+              {/* Login/Signup or Profile section for mobile */}
+              {isLoggedIn ? (
+                <div className="border-t border-gray-100 mt-2">
+                  <div className="px-4 py-3">
+                    <p className="text-sm font-medium text-slate-800">Signed in as</p>
+                    <p className="text-sm text-slate-500 truncate">{userRole}</p>
+                  </div>
+                  <Link 
+                    to="#"
+                    className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Login
-                  </button>
-                  <button 
-                    className="w-full px-4 py-2.5 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors"
-                    onClick={() => navigateAndCloseMenu('/SignUp')}
+                    <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    My Profile
+                  </Link>
+                  <Link 
+                    to="#"
+                    className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Sign Up
+                    <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Settings
+                  </Link>
+                  <button 
+                    className="flex items-center w-full text-left font-medium text-red-500 hover:text-red-700 hover:bg-slate-50 transition-colors py-3 px-4"
+                    onClick={handleLogout}
+                  >
+                    <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sign out
                   </button>
                 </div>
-              </div>
+              ) : (
+                <div className="px-4 py-3 mt-1 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      className="w-full px-4 py-2.5 font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
+                      onClick={() => navigateAndCloseMenu('/login')}
+                    >
+                      Login
+                    </button>
+                    <button 
+                      className="w-full px-4 py-2.5 font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors"
+                      onClick={() => navigateAndCloseMenu('/SignUp')}
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
