@@ -89,6 +89,7 @@ router.post('/hire-requests', validateHireRequest, async (req, res) => {
       preferredDate: new Date(req.body.preferredDate), // Ensure proper date conversion
       preferredTime: req.body.preferredTime,
       additionalInfo: req.body.additionalInfo || ''
+      
     });
 
     // Save to database

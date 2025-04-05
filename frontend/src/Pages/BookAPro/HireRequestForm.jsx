@@ -17,7 +17,8 @@ const HireRequestForm = ({ serviceType }) => {
     serviceDescription: '',
     preferredDate: '',
     preferredTime: '',
-    additionalInfo: ''
+    additionalInfo: '',
+    serviceType: sessionStorage.getItem('hirenow') || '' // Adding fallback empty string
   });
 
   // Form validation errors
@@ -29,6 +30,7 @@ const HireRequestForm = ({ serviceType }) => {
     serviceDescription: '',
     preferredDate: '',
     preferredTime: '',
+    serviceType: ''
   });
 
   // Form touched state for validation
@@ -40,6 +42,7 @@ const HireRequestForm = ({ serviceType }) => {
     serviceDescription: false,
     preferredDate: false,
     preferredTime: false,
+    serviceType: false
   });
 
   // Address states - from the address bar
@@ -73,7 +76,7 @@ const HireRequestForm = ({ serviceType }) => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(10); // 60 seconds countdown
+  const [countdown, setCountdown] = useState(10); // 10 seconds countdown
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
   const addressDropdownRef = useRef(null);
@@ -165,7 +168,6 @@ const HireRequestForm = ({ serviceType }) => {
         break;
       case 'contactNumber':
         const phoneRegex = /^\d{10}$/;
-        ;
         if (!value.trim()) {
           errorMessage = 'Contact number is required';
         } else if (!phoneRegex.test(value)) {
@@ -200,6 +202,11 @@ const HireRequestForm = ({ serviceType }) => {
       case 'preferredTime':
         if (!value) {
           errorMessage = 'Please select a preferred time slot';
+        }
+        break;
+      case 'serviceType':
+        if (!value || value.trim() === '') {
+          errorMessage = 'Service type is required';
         }
         break;
       default:
@@ -441,7 +448,7 @@ const HireRequestForm = ({ serviceType }) => {
 
   // Validate the entire form
   const validateForm = () => {
-    const formFields = ['name', 'email', 'contactNumber', 'address', 'serviceDescription', 'preferredDate', 'preferredTime'];
+    const formFields = ['name', 'email', 'contactNumber', 'address', 'serviceDescription', 'preferredDate', 'preferredTime', 'serviceType'];
     const newErrors = {};
     let isValid = true;
     
@@ -465,138 +472,138 @@ const HireRequestForm = ({ serviceType }) => {
     return isValid;
   };
 
-// Updated handleSubmit function for HireRequestForm component
-
-// ... other code remains the same
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // Validate all fields
-  if (!validateForm()) {
-    // Scroll to the first error
-    const firstErrorField = document.querySelector('.error-message');
-    if (firstErrorField) {
-      firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return;
-  }
-  
-  // Save user details to session storage
-  sessionStorage.setItem('userName', formData.name);
-  sessionStorage.setItem('userEmail', formData.email);
-  
-  // Update state to show loading
-  setIsSubmitting(true);
-  
-  try {
-    // Format date to ISO string for API (if it's not already)
-    const apiFormData = {
-      ...formData,
-      serviceType,
-      preferredDate: formData.preferredDate instanceof Date 
-        ? formData.preferredDate.toISOString() 
-        : formData.preferredDate
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    // Use axios to make the API request
-    const response = await axios.post(
-      'http://localhost:5500/api/users/hire-requests',
-      apiFormData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+    // Validate all fields
+    if (!validateForm()) {
+      // Scroll to the first error
+      const firstErrorField = document.querySelector('.error-message');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    );
-    
-    const data = response.data;
-    
-    // Check for success property as defined in your backend
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to submit request');
+      return;
     }
     
-    console.log('Form submitted successfully:', data);
+    // Get the service type from sessionStorage before submission
+    const serviceTypeFromStorage = sessionStorage.getItem('hirenow') || '';
     
-    // Store the request ID for reference on the response page
-    if (data.requestId) {
-      sessionStorage.setItem('lastRequestId', data.requestId);
-    }
+    // Save user details to session storage
+    sessionStorage.setItem('userName', formData.name);
+    sessionStorage.setItem('userEmail', formData.email);
+    // Update state to show loading
+    setIsSubmitting(true);
     
-    // Update UI state for success
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    setShowSuccessPopup(true);
-    
-    // Reset form - will happen after redirect
-    setTimeout(() => {
-      setSubmitSuccess(false);
-      setFormData({
-        name: sessionStorage.getItem('userName') || '',
-        email: sessionStorage.getItem('userEmail') || '',
-        contactNumber: '',
-        address: '',
-        serviceDescription: '',
-        preferredDate: '',
-        preferredTime: '',
-        additionalInfo: ''
-      });
-      setActiveAddress('');
-    }, 3000);
-    
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    setIsSubmitting(false);
-    
-    // Handle error based on your backend response structure
-    if (error.response) {
-      const { data, status } = error.response;
+    try {
+      // Format date to ISO string for API (if it's not already)
+      const apiFormData = {
+        ...formData,
+        // Ensure serviceType is set correctly - use the prop value or session storage as fallback
+        serviceType: formData.serviceType || serviceTypeFromStorage || serviceType,
+        preferredDate: formData.preferredDate instanceof Date 
+          ? formData.preferredDate.toISOString() 
+          : formData.preferredDate
+      };
       
-      // Handle validation errors from backend (matching your express-validator format)
-      if (data.errors && Array.isArray(data.errors)) {
-        // Map backend validation errors to frontend error state
-        const backendErrors = {};
-        data.errors.forEach(error => {
-          backendErrors[error.param] = error.msg;
+      // Use axios to make the API request
+      const response = await axios.post(
+        'http://localhost:5500/api/users/hire-requests',
+        apiFormData,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const data = response.data;
+      
+      // Check for success property as defined in your backend
+      if (!data.success) {
+        console.log('Form data before submission:', formData);
+        throw new Error(data.message || 'Failed to submit request');
+  
+      }
+      
+      console.log('Form submitted successfully:', data);
+      
+      // Store the request ID for reference on the response page
+      if (data.requestId) {
+        sessionStorage.setItem('lastRequestId', data.requestId);
+      }
+      
+      // Update UI state for success
+      setIsSubmitting(false);
+      setSubmitSuccess(true);
+      setShowSuccessPopup(true);
+      
+      // Reset form - will happen after redirect
+      setTimeout(() => {
+        setSubmitSuccess(false);
+        setFormData({
+          name: sessionStorage.getItem('userName') || '',
+          email: sessionStorage.getItem('userEmail') || '',
+          contactNumber: '',
+          address: '',
+          serviceDescription: '',
+          preferredDate: '',
+          preferredTime: '',
+          additionalInfo: '',
+          serviceType: sessionStorage.getItem('hirenow') || ''
         });
+        setActiveAddress('');
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setIsSubmitting(false);
+      
+      // Handle error based on your backend response structure
+      if (error.response) {
+        const { data, status } = error.response;
         
-        setErrors(prev => ({
-          ...prev,
-          ...backendErrors
-        }));
-        
-        // Scroll to first error
-        const firstErrorField = document.querySelector('.error-message');
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Handle validation errors from backend (matching your express-validator format)
+        if (data.errors && Array.isArray(data.errors)) {
+          // Map backend validation errors to frontend error state
+          const backendErrors = {};
+          data.errors.forEach(error => {
+            backendErrors[error.param] = error.msg;
+          });
+          
+          setErrors(prev => ({
+            ...prev,
+            ...backendErrors
+          }));
+          
+          // Scroll to first error
+          const firstErrorField = document.querySelector('.error-message');
+          if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          
+          alert('Please fix the highlighted errors');
+          return;
         }
         
-        alert('Please fix the highlighted errors');
-        return;
-      }
-      
-      // Handle specific status codes
-      if (status === 400) {
-        alert(`Validation error: ${data.message || 'Please check your input'}`);
-      } else if (status === 404) {
-        alert('Resource not found');
-      } else if (status === 500) {
-        alert('Server error: Please try again later');
+        // Handle specific status codes
+        if (status === 400) {
+          alert(`Validation error: ${data.message || 'Please check your input'}`);
+        } else if (status === 404) {
+          alert('Resource not found');
+        } else if (status === 500) {
+          alert('Server error: Please try again later');
+        } else {
+          alert(`Error (${status}): ${data.message || 'An error occurred'}`);
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        alert('No response received from server. Please check your connection.');
       } else {
-        alert(`Error (${status}): ${data.message || 'An error occurred'}`);
+        // Something happened in setting up the request
+        alert(`Error: ${error.message || 'An unexpected error occurred'}`);
       }
-    } else if (error.request) {
-      // The request was made but no response was received
-      alert('No response received from server. Please check your connection.');
-    } else {
-      // Something happened in setting up the request
-      alert(`Error: ${error.message || 'An unexpected error occurred'}`);
     }
-  }
-};
-
-
+  };
 
   // Input field animation variants
   const inputVariants = {
@@ -616,6 +623,8 @@ const handleSubmit = async (e) => {
     }
   };
 
+
+  
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 md:px-8 bg-slate-50">
     <motion.div 

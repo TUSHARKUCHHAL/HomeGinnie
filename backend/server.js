@@ -7,6 +7,8 @@ const userRoutes = require('./Routes/User');
 const serviceProviderRoutes = require('./Routes/ServiceProvider');
 const shopRoutes = require('./Routes/Shops');
 const hireRequestRoutes = require('./Routes/HireRequest');
+const serviceRoutes = require('./Routes/Services');
+const path = require('path');
 // Load environment variables
 dotenv.config();
 
@@ -57,10 +59,14 @@ const errorHandler = (err, req, res, next) => {
 };
 
 // Routes
+// More targeted approach - only serve files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/users', userRoutes);
 app.use('/api/service-providers', serviceProviderRoutes);
 app.use('/api/shops', shopRoutes);
 app.use('/api/users', hireRequestRoutes);
+app.use('/api/services', serviceRoutes);
+
 
 // Root route
 app.get('/', (req, res) => {

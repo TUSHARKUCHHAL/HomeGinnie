@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 
-const AddServiceForm = ({ isOpen, onClose }) => {
+const AddServiceForm = ({ isOpen, onClose, onServiceAdded, service }) => {
+  // Initialize form data
   const [formData, setFormData] = useState({
     serviceCategory: '',
     serviceName: '',
@@ -10,6 +11,39 @@ const AddServiceForm = ({ isOpen, onClose }) => {
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Set form data when editing a service
+  useEffect(() => {
+    if (service) {
+      setFormData({
+        serviceCategory: service.serviceCategory || '',
+        serviceName: service.serviceName || '',
+        about: service.about || '',
+        image: null // Image needs to be re-uploaded if needed
+      });
+      
+      // Set image preview if the service has an image
+      if (service.imagePath) {
+        // Prepend the base URL if the path doesn't already include it
+        const imageUrl = service.imagePath.startsWith('http') 
+          ? service.imagePath 
+          : `http://localhost:5500/${service.imagePath}`;
+        setImagePreview(imageUrl);
+      } else {
+        setImagePreview(null);
+      }
+    } else {
+      // Reset form when adding a new service
+      setFormData({
+        serviceCategory: '',
+        serviceName: '',
+        about: '',
+        image: null
+      });
+      setImagePreview(null);
+    }
+  }, [service]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,16 +62,59 @@ const AddServiceForm = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
-    // Simulate form submission
-    setTimeout(() => {
-      console.log('Form submitted:', formData);
-      setIsSubmitting(false);
+    try {
+      // Create form data for multipart/form-data submission
+      const formDataForSubmit = new FormData();
+      formDataForSubmit.append('serviceCategory', formData.serviceCategory);
+      formDataForSubmit.append('serviceName', formData.serviceName);
+      formDataForSubmit.append('about', formData.about);
+      if (formData.image) {
+        formDataForSubmit.append('image', formData.image);
+      }
+      
+      // Determine if we're creating or updating
+      const url = service ? `http://localhost:5500/api/services/${service._id}` : 'http://localhost:5500/api/services';
+      const method = service ? 'PUT' : 'POST';
+      
+      // Submit to backend API
+      const response = await fetch(url, {
+        method: method,
+        body: formDataForSubmit,
+        // No Content-Type header - browser sets it automatically with boundary for FormData
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || `Failed to ${service ? 'update' : 'create'} service`);
+      }
+      
+      // Call callback function if provided
+      if (onServiceAdded && typeof onServiceAdded === 'function') {
+        onServiceAdded(result.data);
+      }
+      
+      // Reset form and close modal
+      setFormData({
+        serviceCategory: '',
+        serviceName: '',
+        about: '',
+        image: null
+      });
+      setImagePreview(null);
       onClose();
-    }, 1500);
+      
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError(err.message || 'An error occurred while submitting the form');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -50,10 +127,13 @@ const AddServiceForm = ({ isOpen, onClose }) => {
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-slate-200">
-          <h3 className="text-xl font-semibold text-slate-800">Add New Service</h3>
+          <h3 className="text-xl font-semibold text-slate-800">
+            {service ? 'Edit Service' : 'Add New Service'}
+          </h3>
           <button 
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 transition-colors"
+            type="button"
           >
             <X size={20} />
           </button>
@@ -61,8 +141,14 @@ const AddServiceForm = ({ isOpen, onClose }) => {
         
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+          
           <div className="space-y-5">
-            {/* Service Category - Now as text input instead of dropdown */}
+            {/* Service Category */}
             <div>
               <label htmlFor="serviceCategory" className="block text-sm font-medium text-slate-800 mb-1">
                 Service Category <span className="text-red-500">*</span>
@@ -122,7 +208,7 @@ const AddServiceForm = ({ isOpen, onClose }) => {
                 {imagePreview ? (
                   <div className="relative w-full h-32 bg-slate-100 rounded-md overflow-hidden">
                     <img 
-                      src={imagePreview} 
+                      src={imagePreview}
                       alt="Preview" 
                       className="w-full h-full object-cover"
                     />
@@ -177,7 +263,7 @@ const AddServiceForm = ({ isOpen, onClose }) => {
                   <Loader2 size={16} className="mr-2 animate-spin" />
                   Saving...
                 </>
-              ) : 'Add Service'}
+              ) : service ? 'Update Service' : 'Add Service'}
             </button>
           </div>
         </form>
@@ -187,9 +273,3 @@ const AddServiceForm = ({ isOpen, onClose }) => {
 };
 
 export default AddServiceForm;
-
-// Add this to your CSS or global stylesheet
-// @keyframes fadeIn {
-//   from { opacity: 0; transform: scale(0.95); }
-//   to { opacity: 1; transform: scale(1); }
-// }
