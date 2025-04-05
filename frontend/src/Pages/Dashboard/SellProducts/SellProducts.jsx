@@ -6,6 +6,7 @@ import { PlusCircle, X, Edit2, Trash2, Save, Search, Upload, Image, AlertCircle,
 
 // API base URL - adjust this based on your deployment
 const API_URL = 'http://localhost:5500/api';
+const BASE_URL = 'http://localhost:5500'; // Base URL for image paths
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -39,7 +40,14 @@ const ProductManagement = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/products`);
-      setProducts(response.data.data);
+      // Process product data to ensure image URLs are complete
+      const processedProducts = response.data.data.map(product => ({
+        ...product,
+        image: product.image && !product.image.startsWith('http') ? 
+          `${BASE_URL}${product.image.startsWith('/') ? '' : '/'}${product.image}` : 
+          product.image
+      }));
+      setProducts(processedProducts);
       setError(null);
     } catch (err) {
       console.error('Error fetching products:', err);
@@ -94,11 +102,14 @@ const ProductManagement = () => {
 
   // Open edit product modal
   const handleEditProduct = (product) => {
+    // If the product image is a full URL, we don't want to prefix it again
+    const imageUrl = product.image;
+    
     setFormData({ 
       ...product,
       imageFile: null // No file initially when editing
     });
-    setPreviewImage(product.image);
+    setPreviewImage(imageUrl);
     setEditMode(true);
     setIsModalOpen(true);
   };
@@ -141,24 +152,46 @@ const ProductManagement = () => {
       // Add image file if there is one
       if (formData.imageFile) {
         productData.append('image', formData.imageFile);
-      } else if (formData.image && typeof formData.image === 'string' && !formData.image.startsWith('blob:')) {
-        // If using an existing image URL
-        productData.append('image', formData.image);
+      } else if (formData.image && typeof formData.image === 'string') {
+        // Extract the image path if it's a full URL from our server
+        let imagePath = formData.image;
+        if (imagePath.startsWith(BASE_URL)) {
+          imagePath = imagePath.substring(BASE_URL.length);
+        }
+        productData.append('image', imagePath);
       }
       
       let response;
       
       if (editMode) {
         response = await axios.put(`${API_URL}/products/${formData._id}`, productData);
+        
+        // Ensure the image URL is complete for the updated product
+        const updatedProduct = {
+          ...response.data.data,
+          image: response.data.data.image && !response.data.data.image.startsWith('http') ? 
+            `${BASE_URL}${response.data.data.image.startsWith('/') ? '' : '/'}${response.data.data.image}` : 
+            response.data.data.image
+        };
+        
         setProducts(
           products.map((product) =>
-            product._id === formData._id ? response.data.data : product
+            product._id === formData._id ? updatedProduct : product
           )
         );
         toast.success('Product updated successfully');
       } else {
         response = await axios.post(`${API_URL}/products`, productData);
-        setProducts([...products, response.data.data]);
+        
+        // Ensure the image URL is complete for the new product
+        const newProduct = {
+          ...response.data.data,
+          image: response.data.data.image && !response.data.data.image.startsWith('http') ? 
+            `${BASE_URL}${response.data.data.image.startsWith('/') ? '' : '/'}${response.data.data.image}` : 
+            response.data.data.image
+        };
+        
+        setProducts([...products, newProduct]);
         toast.success('Product added successfully');
       }
       
@@ -177,6 +210,13 @@ const ProductManagement = () => {
     product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Helper function to get full image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${BASE_URL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  };
 
   return (
     <div className="min-h-screen bg-white p-6 font-sans">
