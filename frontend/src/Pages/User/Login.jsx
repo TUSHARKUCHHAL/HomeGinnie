@@ -378,7 +378,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="text-sm">
-                  <a href="ServiceProvider-Forgot-Password" className="font-medium text-slate-600 hover:text-slate-800">
+                  <a href="/ForgotPassword" className="font-medium text-slate-600 hover:text-slate-800">
                     Forgot password?
                   </a>
                 </div>
