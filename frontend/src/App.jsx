@@ -23,12 +23,12 @@ import RequestResponse from "./Pages/BookAPro/RequestResponse";
 // Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
-import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
+import ServiceProviderDashboard from './Pages/Dashboards/ServiceProviderDashboard';
 
 // Shop Owner Routes
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
 import ShopOwnerLogin from "./Pages/Shop/ShopOwnerLogin";
-import ShopOwnerDashboard from './Pages/Shop/ShopOwnerDashboard';
+import ShopOwnerDashboard from './Pages/Dashboards/ShopOwnerDashboard';
 
 
 import ConfirmLogout from './Components/ConfirmLogout';
