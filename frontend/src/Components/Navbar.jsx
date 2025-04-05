@@ -144,8 +144,8 @@ const Navbar = () => {
             )}
             
             {/* Common links for all users */}
-            <Link to="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Buy Smart</Link>
-            <Link to="#" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Services</Link>
+            <Link to="/Buy-Smart" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Buy Smart</Link>
+            <Link to="/Services" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">Services</Link>
             <Link to="/About-Us" className="font-medium text-slate-700 hover:text-slate-900 transition-colors text-sm lg:text-base">About</Link>
           </div>
 
@@ -324,7 +324,7 @@ const Navbar = () => {
               
               {/* Common links for all */}
               <Link 
-                to="#" 
+                to="/Buy-Smart" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -334,7 +334,7 @@ const Navbar = () => {
                 Buy Smart
               </Link>
               <Link 
-                to="#" 
+                to="/Services" 
                 className="flex items-center font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors py-3 px-4"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

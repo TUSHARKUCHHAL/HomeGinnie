@@ -7,7 +7,7 @@ import About from './Pages/About';
 import ContactUs from './Components/Contact';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
-
+import Services from './Pages/Services';
 
 // Simple User Routes
 import LoginPage from './Pages/User/Login';
@@ -54,6 +54,7 @@ import ProtectedRoute from './Components/ProtectedRoute';
 
 
 import './App.css';
+import BuySmart from "./Pages/Buy smart/BuySmart";
 
 
 // Create an AuthContext for robust state management
@@ -124,6 +125,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/About-Us" element={<About />} />
           <Route path="/Contact-Us" element={<ContactUs />} />
+          <Route path="/Services" element={<Services />} />
           <Route path="/ForgotPassword" element={<ForgotPassword />} />
           <Route path="/ResetPassword/:token" element={<ResetPassword />} />
           <Route path="/ServiceProvider-Forgot-Password" element={<ServiceProviderForgetPassword />} />
@@ -168,6 +170,18 @@ const App = () => {
                 userRole={userRole}
               >
                 <BookAPro />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Buy-Smart"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["user", "admin"]}
+                userRole={userRole}
+              >
+                <BuySmart />
               </ProtectedRoute>
             }
           />
