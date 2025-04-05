@@ -587,4 +587,5 @@ router.delete('/addresses/:type', protect, async (req, res) => {
   }
 });
 
+
 module.exports = router;

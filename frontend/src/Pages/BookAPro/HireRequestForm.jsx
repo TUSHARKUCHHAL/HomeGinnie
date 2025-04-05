@@ -4,8 +4,9 @@ import {
   MapPin, ChevronDown, Home, Briefcase, MapPinned, 
   Navigation, Loader, X, Plus, MapIcon, CheckCircle, AlertCircle 
 } from 'lucide-react';
-import { LocationService } from './LocationService'; // Importing the service from the second file
-import axios from 'axios';
+import { LocationService } from './LocationService';
+import AddressModal from './AddressModal';
+import api from './api'; // Import the api instance instead of axios directly
 
 const HireRequestForm = ({ serviceType }) => {
   // State for form fields
@@ -17,7 +18,8 @@ const HireRequestForm = ({ serviceType }) => {
     serviceDescription: '',
     preferredDate: '',
     preferredTime: '',
-    additionalInfo: ''
+    additionalInfo: '',
+    serviceType: sessionStorage.getItem('hirenow') || '' // Adding fallback empty string
   });
 
   // Form validation errors
@@ -29,6 +31,7 @@ const HireRequestForm = ({ serviceType }) => {
     serviceDescription: '',
     preferredDate: '',
     preferredTime: '',
+    serviceType: ''
   });
 
   // Form touched state for validation
@@ -40,12 +43,13 @@ const HireRequestForm = ({ serviceType }) => {
     serviceDescription: false,
     preferredDate: false,
     preferredTime: false,
+    serviceType: false
   });
 
-  // Address states - from the address bar
+  // Address states - from the address selection
   const [addresses, setAddresses] = useState({
-    home: '123 Main St, Anytown',
-    work: '456 Business Ave, Commerce City',
+    home: '',
+    work: '',
     other: '',
     current: ''
   });
@@ -55,6 +59,9 @@ const HireRequestForm = ({ serviceType }) => {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
   const [newAddressData, setNewAddressData] = useState({
     addressLine: '',
     city: '',
@@ -63,46 +70,151 @@ const HireRequestForm = ({ serviceType }) => {
     landmark: '',
     type: 'home' // default type
   });
+  
   const [addressErrors, setAddressErrors] = useState({
     addressLine: '',
     city: '',
     pincode: '',
     state: '',
   });
+  
   const [isLoadingPincodeData, setIsLoadingPincodeData] = useState(false);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [countdown, setCountdown] = useState(10); // 60 seconds countdown
+  const [countdown, setCountdown] = useState(10); // 10 seconds countdown
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
   const addressDropdownRef = useRef(null);
+  const addressInputRef = useRef(null);
   const modalRef = useRef(null);
   
-  // Load user data from session storage on component mount
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  
+  // Load saved addresses from MongoDB and user data from session storage on component mount
   useEffect(() => {
-    const userName = sessionStorage.getItem('userName');
-    const userEmail = sessionStorage.getItem('userEmail');
-    
-    if (userName) {
-      setFormData(prev => ({ ...prev, name: userName }));
-    }
-    
-    if (userEmail) {
-      setFormData(prev => ({ ...prev, email: userEmail }));
-    }
-    
-    // Also load addresses if they exist in session storage
-    const storedAddresses = sessionStorage.getItem('userAddresses');
-    if (storedAddresses) {
-      try {
-        const parsedAddresses = JSON.parse(storedAddresses);
-        setAddresses(prev => ({ ...prev, ...parsedAddresses }));
-      } catch (error) {
-        console.error('Error parsing addresses from session storage:', error);
+    const loadSavedAddressesAndUserData = async () => {
+      // Load user data
+      const userName = sessionStorage.getItem('userName');
+      const userEmail = sessionStorage.getItem('userEmail');
+      
+      if (userName) {
+        setFormData(prev => ({ ...prev, name: userName }));
       }
+      
+      if (userEmail) {
+        setFormData(prev => ({ ...prev, email: userEmail }));
+      }
+      
+      // Load addresses
+      setIsLoadingAddresses(true);
+      
+      try {
+        // First try to get addresses from MongoDB through the API
+        if (token) {
+          try {
+            const response = await api.get('/users/addresses', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            // If we get a successful response, user is logged in
+            setIsLoggedIn(true);
+            
+            const savedAddresses = response.data.reduce((acc, address) => {
+              acc[address.type] = address.formattedAddress;
+              return acc;
+            }, {});
+            
+            // Get current location from session/local storage
+            const storedCurrentLocation = sessionStorage.getItem('currentLocation') || localStorage.getItem('currentLocation');
+            const storedActiveAddress = sessionStorage.getItem('activeAddress') || localStorage.getItem('activeAddress');
+            
+            // Combine backend addresses with current location from storage
+            const combinedAddresses = {
+              ...savedAddresses,
+              ...(storedCurrentLocation ? { current: storedCurrentLocation } : {})
+            };
+            
+            setAddresses(combinedAddresses);
+            
+            // Set active address
+            if (storedActiveAddress && (combinedAddresses[storedActiveAddress] || storedActiveAddress === 'current')) {
+              setActiveAddress(storedActiveAddress);
+              setFormData(prev => ({ ...prev, address: combinedAddresses[storedActiveAddress] || '' }));
+            } else if (Object.keys(combinedAddresses).length > 0) {
+              const firstAddressKey = Object.keys(combinedAddresses)[0];
+              setActiveAddress(firstAddressKey);
+              setFormData(prev => ({ ...prev, address: combinedAddresses[firstAddressKey] || '' }));
+            }
+          } catch (error) {
+            console.error('Error fetching addresses from API:', error);
+            
+            // If unauthorized, user needs to login again
+            if (error.response && error.response.status === 401) {
+              setIsLoggedIn(false);
+            }
+            
+            // Fall back to session storage addresses
+            fallbackToSessionStorageAddresses();
+          }
+        } else {
+          // No token, fall back to session storage addresses
+          fallbackToSessionStorageAddresses();
+        }
+      } catch (error) {
+        console.error('Error loading addresses:', error);
+        fallbackToSessionStorageAddresses();
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+    
+    const fallbackToSessionStorageAddresses = () => {
+      // Fall back to getting addresses from session/local storage
+      const storedAddresses = sessionStorage.getItem('userAddresses');
+      const storedCurrentLocation = sessionStorage.getItem('currentLocation') || localStorage.getItem('currentLocation');
+      const storedActiveAddress = sessionStorage.getItem('activeAddress') || localStorage.getItem('activeAddress');
+      
+      let parsedAddresses = {};
+      
+      if (storedAddresses) {
+        try {
+          parsedAddresses = JSON.parse(storedAddresses);
+        } catch (error) {
+          console.error('Error parsing addresses from session storage:', error);
+        }
+      }
+      
+      // Add current location if available
+      if (storedCurrentLocation) {
+        parsedAddresses.current = storedCurrentLocation;
+      }
+      
+      setAddresses(parsedAddresses);
+      
+      // Set active address if available
+      if (storedActiveAddress && (parsedAddresses[storedActiveAddress] || storedActiveAddress === 'current')) {
+        setActiveAddress(storedActiveAddress);
+        setFormData(prev => ({ ...prev, address: parsedAddresses[storedActiveAddress] || '' }));
+      } else if (Object.keys(parsedAddresses).length > 0) {
+        const firstAddressKey = Object.keys(parsedAddresses)[0];
+        setActiveAddress(firstAddressKey);
+        setFormData(prev => ({ ...prev, address: parsedAddresses[firstAddressKey] || '' }));
+      }
+    };
+    
+    loadSavedAddressesAndUserData();
+  }, [token]);
+
+  // Save active address to session storage whenever it changes
+  useEffect(() => {
+    if (activeAddress) {
+      sessionStorage.setItem('activeAddress', activeAddress);
+      localStorage.setItem('activeAddress', activeAddress);
     }
-  }, []);
+  }, [activeAddress]);
 
   // Countdown timer effect for redirect
   useEffect(() => {
@@ -115,9 +227,7 @@ const HireRequestForm = ({ serviceType }) => {
       // Redirect to RequestResponse
       console.log('Redirecting to RequestResponse page...');
       // In a real implementation, you would use router to navigate
-      // e.g., router.push('/request-response');
-      // For this example, we'll just log it
-      window.location.href = '/request-response'; // Uncomment in real implementation
+      window.location.href = '/request-response';
     }
     
     return () => clearTimeout(timer);
@@ -165,7 +275,6 @@ const HireRequestForm = ({ serviceType }) => {
         break;
       case 'contactNumber':
         const phoneRegex = /^\d{10}$/;
-        ;
         if (!value.trim()) {
           errorMessage = 'Contact number is required';
         } else if (!phoneRegex.test(value)) {
@@ -200,6 +309,11 @@ const HireRequestForm = ({ serviceType }) => {
       case 'preferredTime':
         if (!value) {
           errorMessage = 'Please select a preferred time slot';
+        }
+        break;
+      case 'serviceType':
+        if (!value || value.trim() === '') {
+          errorMessage = 'Service type is required';
         }
         break;
       default:
@@ -268,36 +382,78 @@ const HireRequestForm = ({ serviceType }) => {
 
   // Handle fetching the current location using LocationService
   const handleGetCurrentLocation = async () => {
+    // Check if we already have the current location in session/local storage
+    const storedCurrentLocation = sessionStorage.getItem('currentLocation') || localStorage.getItem('currentLocation');
+    
+    if (storedCurrentLocation) {
+      // Use the stored location instead of requesting a new one
+      const updatedAddresses = {
+        ...addresses,
+        current: storedCurrentLocation
+      };
+      
+      setAddresses(updatedAddresses);
+      setActiveAddress('current');
+      setFormData(prev => ({ ...prev, address: storedCurrentLocation }));
+      setTouched(prev => ({ ...prev, address: true }));
+      setErrors(prev => ({ ...prev, address: '' }));
+      
+      // Save to session/local storage
+      const addressesForStorage = { ...addresses, current: storedCurrentLocation };
+      sessionStorage.setItem('userAddresses', JSON.stringify(addressesForStorage));
+      sessionStorage.setItem('activeAddress', 'current');
+      localStorage.setItem('activeAddress', 'current');
+      
+      setAddressDropdownOpen(false);
+      return;
+    }
+    
+    // If no stored location, fetch the current location
     setIsLoadingLocation(true);
     setLocationError(null);
     
     try {
-      // Use the LocationService from the imported file
+      // Use the LocationService
       const locationData = await LocationService.getCurrentLocation();
-      const formattedAddress = LocationService.formatLocation(locationData);
+      
+      // Format the location data into a string representation
+      let formattedAddress = '';
+      
+      if (typeof locationData === 'string') {
+        // If it's already a string, use it directly
+        formattedAddress = locationData;
+      } else if (locationData && typeof locationData === 'object') {
+        // If it's an object, format it properly
+        formattedAddress = LocationService.formatLocation(locationData);
+      }
+      
+      // Store the formatted address in session/local storage
+      sessionStorage.setItem('currentLocation', formattedAddress || "Current location");
+      localStorage.setItem('currentLocation', formattedAddress || "Current location");
       
       // Update addresses state with current location
-      setAddresses(prev => ({
-        ...prev,
-        current: formattedAddress
-      }));
+      const updatedAddresses = {
+        ...addresses,
+        current: formattedAddress || "Current location"
+      };
       
-      // Set the active address and form data
+      setAddresses(updatedAddresses);
       setActiveAddress('current');
-      setFormData(prev => ({ ...prev, address: formattedAddress }));
+      setFormData(prev => ({ ...prev, address: formattedAddress || "Current location" }));
       setTouched(prev => ({ ...prev, address: true }));
       setErrors(prev => ({ ...prev, address: '' }));
       
       // Save to session storage
-      const updatedAddresses = { ...addresses, current: formattedAddress };
       sessionStorage.setItem('userAddresses', JSON.stringify(updatedAddresses));
+      sessionStorage.setItem('activeAddress', 'current');
+      localStorage.setItem('activeAddress', 'current');
       
       // Close the dropdown
       setAddressDropdownOpen(false);
-      setIsLoadingLocation(false);
     } catch (error) {
       console.error('Error getting current location:', error);
       setLocationError(error.message || "Unable to access your location. Please check your browser permissions.");
+    } finally {
       setIsLoadingLocation(false);
     }
   };
@@ -305,10 +461,10 @@ const HireRequestForm = ({ serviceType }) => {
   // Handle pincode/zip code autofill
   const handlePincodeChange = async (e) => {
     const pincode = e.target.value;
-    setNewAddressData({
-      ...newAddressData,
+    setNewAddressData(prev => ({
+      ...prev,
       pincode
-    });
+    }));
     
     // Validate pincode
     const pincodeError = validateAddressField('pincode', pincode);
@@ -352,10 +508,10 @@ const HireRequestForm = ({ serviceType }) => {
   // Handle input change for new address form with validation
   const handleAddressInputChange = (e) => {
     const { name, value } = e.target;
-    setNewAddressData({
-      ...newAddressData,
+    setNewAddressData(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
     
     // Validate address field
     const errorMessage = validateAddressField(name, value);
@@ -364,10 +520,10 @@ const HireRequestForm = ({ serviceType }) => {
 
   // Handle address type selection
   const handleAddressTypeChange = (type) => {
-    setNewAddressData({
-      ...newAddressData,
+    setNewAddressData(prev => ({
+      ...prev,
       type
-    });
+    }));
   };
 
   // Validate entire address form
@@ -389,7 +545,7 @@ const HireRequestForm = ({ serviceType }) => {
   };
 
   // Handle save address
-  const handleSaveAddress = () => {
+  const handleSaveAddress = async () => {
     // Validate all address fields
     if (!validateAddressForm()) {
       return;
@@ -398,36 +554,65 @@ const HireRequestForm = ({ serviceType }) => {
     const { addressLine, city, pincode, state, landmark, type } = newAddressData;
     
     // Format the full address
-    const fullAddress = `${addressLine}, ${city}, ${state} - ${pincode}${landmark ? `, Near ${landmark}` : ''}`;
+    const formattedAddress = `${addressLine}, ${city}, ${state} - ${pincode}${landmark ? `, Near ${landmark}` : ''}`;
     
-    // Update addresses state with new address
-    const updatedAddresses = {
-      ...addresses,
-      [type]: fullAddress
-    };
-    
-    setAddresses(updatedAddresses);
-    
-    // Set active address to the new address and update form data
-    setActiveAddress(type);
-    setFormData(prev => ({ ...prev, address: fullAddress }));
-    setTouched(prev => ({ ...prev, address: true }));
-    setErrors(prev => ({ ...prev, address: '' }));
-    
-    // Save to session storage
-    sessionStorage.setItem('userAddresses', JSON.stringify(updatedAddresses));
-    
-    // Reset form and close modal
-    setNewAddressData({
-      addressLine: '',
-      city: '',
-      pincode: '',
-      state: '',
-      landmark: '',
-      type: 'home'
-    });
-    setAddressErrors({});
-    setShowAddressModal(false);
+    try {
+      // If user is logged in, save address to MongoDB through API with auth headers
+      if (token) {
+        try {
+          await api.post('/users/addresses', {
+            type,
+            addressLine,
+            city,
+            pincode,
+            state,
+            landmark,
+            formattedAddress
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+        } catch (error) {
+          console.error('Error saving address to database:', error);
+          // Even if API save fails, continue with local storage
+        }
+      }
+      
+      // Update addresses state with new address
+      const updatedAddresses = {
+        ...addresses,
+        [type]: formattedAddress
+      };
+      
+      setAddresses(updatedAddresses);
+      
+      // Set active address to the new address and update form data
+      setActiveAddress(type);
+      setFormData(prev => ({ ...prev, address: formattedAddress }));
+      setTouched(prev => ({ ...prev, address: true }));
+      setErrors(prev => ({ ...prev, address: '' }));
+      
+      // Save to session storage
+      sessionStorage.setItem('userAddresses', JSON.stringify(updatedAddresses));
+      sessionStorage.setItem('activeAddress', type);
+      localStorage.setItem('activeAddress', type);
+      
+      // Reset form and close modal
+      setNewAddressData({
+        addressLine: '',
+        city: '',
+        pincode: '',
+        state: '',
+        landmark: '',
+        type: 'home'
+      });
+      setAddressErrors({});
+      setShowAddressModal(false);
+    } catch (error) {
+      console.error('Error saving address:', error);
+      alert('Failed to save address. Please try again.');
+    }
   };
 
   // Handle selecting an existing address
@@ -437,11 +622,15 @@ const HireRequestForm = ({ serviceType }) => {
     setTouched(prev => ({ ...prev, address: true }));
     setErrors(prev => ({ ...prev, address: '' }));
     setAddressDropdownOpen(false);
+    
+    // Save active address to session storage
+    sessionStorage.setItem('activeAddress', type);
+    localStorage.setItem('activeAddress', type);
   };
 
   // Validate the entire form
   const validateForm = () => {
-    const formFields = ['name', 'email', 'contactNumber', 'address', 'serviceDescription', 'preferredDate', 'preferredTime'];
+    const formFields = ['name', 'email', 'contactNumber', 'address', 'serviceDescription', 'preferredDate', 'preferredTime', 'serviceType'];
     const newErrors = {};
     let isValid = true;
     
@@ -465,138 +654,157 @@ const HireRequestForm = ({ serviceType }) => {
     return isValid;
   };
 
-// Updated handleSubmit function for HireRequestForm component
-
-// ... other code remains the same
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // Validate all fields
-  if (!validateForm()) {
-    // Scroll to the first error
-    const firstErrorField = document.querySelector('.error-message');
-    if (firstErrorField) {
-      firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return;
-  }
-  
-  // Save user details to session storage
-  sessionStorage.setItem('userName', formData.name);
-  sessionStorage.setItem('userEmail', formData.email);
-  
-  // Update state to show loading
-  setIsSubmitting(true);
-  
-  try {
-    // Format date to ISO string for API (if it's not already)
-    const apiFormData = {
-      ...formData,
-      serviceType,
-      preferredDate: formData.preferredDate instanceof Date 
-        ? formData.preferredDate.toISOString() 
-        : formData.preferredDate
-    };
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    // Use axios to make the API request
-    const response = await axios.post(
-      'http://localhost:5500/api/users/hire-requests',
-      apiFormData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+    // Validate all fields
+    if (!validateForm()) {
+      // Scroll to the first error
+      const firstErrorField = document.querySelector('.error-message');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    );
-    
-    const data = response.data;
-    
-    // Check for success property as defined in your backend
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to submit request');
+      return;
     }
     
-    console.log('Form submitted successfully:', data);
+    // Get the service type from sessionStorage before submission
+    const serviceTypeFromStorage = sessionStorage.getItem('hirenow') || '';
     
-    // Store the request ID for reference on the response page
-    if (data.requestId) {
-      sessionStorage.setItem('lastRequestId', data.requestId);
-    }
+    // Save user details to session storage
+    sessionStorage.setItem('userName', formData.name);
+    sessionStorage.setItem('userEmail', formData.email);
     
-    // Update UI state for success
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    setShowSuccessPopup(true);
+    // Update state to show loading
+    setIsSubmitting(true);
     
-    // Reset form - will happen after redirect
-    setTimeout(() => {
-      setSubmitSuccess(false);
-      setFormData({
-        name: sessionStorage.getItem('userName') || '',
-        email: sessionStorage.getItem('userEmail') || '',
-        contactNumber: '',
-        address: '',
-        serviceDescription: '',
-        preferredDate: '',
-        preferredTime: '',
-        additionalInfo: ''
-      });
-      setActiveAddress('');
-    }, 3000);
-    
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    setIsSubmitting(false);
-    
-    // Handle error based on your backend response structure
-    if (error.response) {
-      const { data, status } = error.response;
+    try {
+      // Format date to ISO string for API (if it's not already)
+      const apiFormData = {
+        ...formData,
+        // Ensure serviceType is set correctly - use the prop value or session storage as fallback
+        serviceType: formData.serviceType || serviceTypeFromStorage || serviceType,
+        preferredDate: formData.preferredDate instanceof Date 
+          ? formData.preferredDate.toISOString() 
+          : formData.preferredDate
+      };
       
-      // Handle validation errors from backend (matching your express-validator format)
-      if (data.errors && Array.isArray(data.errors)) {
-        // Map backend validation errors to frontend error state
-        const backendErrors = {};
-        data.errors.forEach(error => {
-          backendErrors[error.param] = error.msg;
-        });
-        
-        setErrors(prev => ({
-          ...prev,
-          ...backendErrors
-        }));
-        
-        // Scroll to first error
-        const firstErrorField = document.querySelector('.error-message');
-        if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        
-        alert('Please fix the highlighted errors');
+      if (!token) {
+        // Handle missing token - could redirect to login or show an error
+        alert('Authentication required. Please log in again.');
+        // You might want to redirect to login page here
+        setIsSubmitting(false);
         return;
       }
       
-      // Handle specific status codes
-      if (status === 400) {
-        alert(`Validation error: ${data.message || 'Please check your input'}`);
-      } else if (status === 404) {
-        alert('Resource not found');
-      } else if (status === 500) {
-        alert('Server error: Please try again later');
-      } else {
-        alert(`Error (${status}): ${data.message || 'An error occurred'}`);
+      // Use api instance to make the API request with token
+      const response = await api.post(
+        '/users/hire-requests',
+        apiFormData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const data = response.data;
+      
+      // Check for success property as defined in your backend
+      if (!data.success) {
+        console.log('Form data before submission:', formData);
+        throw new Error(data.message || 'Failed to submit request');
       }
-    } else if (error.request) {
-      // The request was made but no response was received
-      alert('No response received from server. Please check your connection.');
-    } else {
-      // Something happened in setting up the request
-      alert(`Error: ${error.message || 'An unexpected error occurred'}`);
+      
+      console.log('Form submitted successfully:', data);
+      
+      // Store the request ID for reference on the response page
+      if (data.requestId) {
+        sessionStorage.setItem('lastRequestId', data.requestId);
+      }
+      
+      // Update UI state for success
+      setIsSubmitting(false);
+      setSubmitSuccess(true);
+      setShowSuccessPopup(true);
+      
+      // Reset form - will happen after redirect
+      setTimeout(() => {
+        setSubmitSuccess(false);
+        setFormData({
+          name: sessionStorage.getItem('userName') || '',
+          email: sessionStorage.getItem('userEmail') || '',
+          contactNumber: '',
+          address: '',
+          serviceDescription: '',
+          preferredDate: '',
+          preferredTime: '',
+          additionalInfo: '',
+          serviceType: sessionStorage.getItem('hirenow') || ''
+        });
+        setActiveAddress('');
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setIsSubmitting(false);
+      
+      // Handle error based on your backend response structure
+      if (error.response) {
+        const { data, status } = error.response;
+        
+        // Handle validation errors from backend (matching your express-validator format)
+        if (data.errors && Array.isArray(data.errors)) {
+          // Map backend validation errors to frontend error state
+          const backendErrors = {};
+          data.errors.forEach(error => {
+            backendErrors[error.param] = error.msg;
+          });
+          
+          setErrors(prev => ({
+            ...prev,
+            ...backendErrors
+          }));
+          
+          // Scroll to first error
+          const firstErrorField = document.querySelector('.error-message');
+          if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          
+          alert('Please fix the highlighted errors');
+          return;
+        }
+        
+        // Handle specific status codes
+        if (status === 400) {
+          alert(`Validation error: ${data.message || 'Please check your input'}`);
+        } else if (status === 404) {
+          alert('Resource not found');
+        } else if (status === 500) {
+          alert('Server error: Please try again later');
+        } else {
+          alert(`Error (${status}): ${data.message || 'An error occurred'}`);
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        alert('No response received from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request
+        alert(`Error: ${error.message || 'An unexpected error occurred'}`);
+      }
     }
-  }
-};
+  };
 
-
+  // Helper function to get display text for the address field
+  const getAddressDisplayText = () => {
+    if (!activeAddress || !addresses || !addresses[activeAddress]) {
+      return "Select Service Location";
+    }
+    
+    return addresses[activeAddress];
+  };
 
   // Input field animation variants
   const inputVariants = {
@@ -615,6 +823,7 @@ const handleSubmit = async (e) => {
       }
     }
   };
+
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 md:px-8 bg-slate-50">
