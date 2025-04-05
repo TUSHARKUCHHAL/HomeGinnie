@@ -936,15 +936,17 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Star, ChevronRight, Home, ShieldCheck, Clock, Users, ChevronDown, MapPin } from 'lucide-react';
+import { Star, ChevronRight, Home, ShieldCheck, Clock, Users, ChevronDown, MapPin, AlertCircle } from 'lucide-react';
 import SearchAddressBar from './SearchAddressBar';
 import LocationService from './LocationService';
+import { useNavigate } from "react-router-dom";
 
 const BookProPage = () => {
   const [activeAddress, setActiveAddress] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showImagePlaceholder, setShowImagePlaceholder] = useState(false);
   const [expandedServiceId, setExpandedServiceId] = useState(null);
+  const navigate = useNavigate();
   
   // Updated addresses state to initialize with empty values
   const [addresses, setAddresses] = useState({
@@ -953,6 +955,43 @@ const BookProPage = () => {
     other: "",
     current: ""
   });
+
+  // Sample active requests data - in a real app, this would come from an API
+  const [activeRequests, setActiveRequests] = useState([
+    { 
+      id: "plumber-request-1",
+      serviceId: "plumber",
+      name: "Plumber", 
+      rating: 4.8,
+      description: "Fix leaking kitchen sink",
+      status: "hired", // "hired" or "pending"
+      providerName: "John Smith",
+      scheduledDate: "April 7, 2025",
+      scheduledTime: "10:00 AM - 12:00 PM",
+      icon: "droplet"
+    },
+    { 
+      id: "electrician-request-1",
+      serviceId: "electrician",
+      name: "Electrician", 
+      rating: 4.7,
+      description: "Install ceiling fan in living room",
+      status: "pending", // "hired" or "pending"
+      icon: "zap"
+    },
+    { 
+      id: "domestic-help-request-1",
+      serviceId: "domestic-help",
+      name: "Domestic Help", 
+      rating: 4.6,
+      description: "Weekly house cleaning service",
+      status: "hired", // "hired" or "pending"
+      providerName: "Maria Garcia",
+      scheduledDate: "Every Monday",
+      scheduledTime: "9:00 AM - 11:00 AM",
+      icon: "home"
+    }
+  ]);
   
   const services = [
     {
@@ -1158,6 +1197,24 @@ const BookProPage = () => {
     }
   };
 
+  // Function to navigate to hire request form
+  const handleHireNow = (e, serviceId) => {
+    e.stopPropagation(); // Stop event propagation
+    navigate("/Hire-Request-Form", { state: { serviceId } });
+  };
+
+  // Function to navigate to find provider for active request
+  const handleFindProvider = (e, requestId) => {
+    e.stopPropagation();
+    navigate("/Request-Response", { state: { requestId } });
+  };
+
+  // Function to view details of an active request
+  const handleViewRequestDetails = (e, requestId) => {
+    e.stopPropagation();
+    navigate("/Request-Details", { state: { requestId } });
+  };
+
   // Function to render service icon or image placeholder
   const renderServiceIcon = (iconName) => {
     if (showImagePlaceholder) {
@@ -1226,6 +1283,84 @@ const BookProPage = () => {
         {/* Services List */}
         {isAddressSelected && (
           <div className="mt-6">
+            {/* Active Requests Section - Always at the top */}
+            {activeRequests.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center">
+                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-lg mr-3">
+                    <AlertCircle className="w-5 h-5" />
+                  </span>
+                  Active Requests
+                </h2>
+                
+                {/* Active Requests Cards Container */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+                  {activeRequests.map((request) => (
+                    <div key={request.id} className="bg-white rounded-xl shadow overflow-hidden border border-slate-100 hover:shadow-lg transition">
+                      <div className="p-4 flex flex-col h-full">
+                        {/* Header */}
+                        <div className="flex items-start mb-3">
+                          {renderServiceIcon(request.icon)}
+                          <div className="ml-3 flex-1">
+                            <div className="flex justify-between items-center">
+                              <h4 className="text-lg font-medium text-slate-900 truncate">{request.name}</h4>
+                              <div className="flex items-center bg-slate-700/40 text-white px-2 py-1 rounded-md text-xs">
+                                <Star className="w-3 h-3 fill-current text-yellow-400 mr-1" />
+                                <span>{request.rating}</span>
+                              </div>
+                            </div>
+                            <p className="text-slate-600 text-sm mt-1 truncate">{request.description}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Status */}
+                        {request.status === "hired" ? (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                            <div className="flex items-center mb-1">
+                              <ShieldCheck className="w-4 h-4 text-green-600 mr-1" />
+                              <span className="text-green-700 font-medium text-sm">Professional Hired</span>
+                            </div>
+                            <p className="text-xs text-slate-600">
+                              {request.providerName} · {request.scheduledDate} · {request.scheduledTime}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                            <div className="flex items-center mb-1">
+                              <AlertCircle className="w-4 h-4 text-yellow-600 mr-1" />
+                              <span className="text-yellow-700 font-medium text-sm">Awaiting Professional</span>
+                            </div>
+                            <p className="text-xs text-slate-600">
+                              Find and hire a professional for this service
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Bottom Action Area */}
+                        <div className="flex justify-between items-center mt-auto">
+                          {request.status === "hired" ? (
+                            <button 
+                              className="bg-zinc-800 hover:bg-zinc-600 text-white font-medium rounded-lg px-5 py-2 transition shadow text-sm w-full"
+                              onClick={(e) => handleViewRequestDetails(e, request.id)}
+                            >
+                              View Details
+                            </button>
+                          ) : (
+                            <button 
+                              className="bg-stone-700 hover:bg-stone-500 text-white font-medium rounded-lg px-5 py-2 transition shadow text-sm w-full"
+                              onClick={(e) => handleFindProvider(e, request.id)}
+                            >
+                              Find Professional
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <h2 className="text-xl font-semibold text-slate-800 mb-4">Available Services</h2>
             
             {filteredServices.length === 0 ? (
@@ -1282,7 +1417,10 @@ const BookProPage = () => {
 
                                   {/* Bottom Action Area */}
                                   <div className="flex justify-between items-center mt-3 sm:mt-4 mt-auto">
-                                    <button className="bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg px-3 sm:px-5 py-1 sm:py-2 transition shadow w-24 sm:w-32 text-xs sm:text-base">
+                                    <button 
+                                      className="bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg px-3 sm:px-5 py-1 sm:py-2 transition shadow w-24 sm:w-32 text-xs sm:text-base" 
+                                      onClick={(e) => handleHireNow(e, service.id)}
+                                    >
                                       Hire Now
                                     </button>
                                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition">
@@ -1352,10 +1490,16 @@ const BookProPage = () => {
                                     
                                     {/* Action Buttons */}
                                     <div className="flex flex-col gap-2 mt-auto">
-                                      <button className="bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg py-2 transition shadow text-sm w-full">
+                                      <button 
+                                        className="bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg py-2 transition shadow text-sm w-full"
+                                        onClick={(e) => handleHireNow(e, service.id)}
+                                      >
                                         Hire Now
                                       </button>
-                                      <button className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg py-2 transition shadow text-sm w-full">
+                                      <button 
+                                        className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-lg py-2 transition shadow text-sm w-full"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
                                         Contact
                                       </button>
                                       <button 

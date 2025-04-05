@@ -10,6 +10,7 @@ const ResetPassword = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (success) {
@@ -75,444 +76,232 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="reset-password-container">
-      <div className="reset-password-card">
-        <div className="card-header">
-          <h2>Reset Password</h2>
-          <p>Please enter your new password below</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="reset-password-form">
-          <div className="form-group">
-            <label htmlFor="newPassword">New Password</label>
-            <div className="input-wrapper">
-              <input
-                id="newPassword"
-                type={showPassword ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                disabled={isLoading}
-                required
-                aria-describedby="password-requirements"
-              />
-              <svg 
-                className="password-icon" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-              >
-                <path d="M12 17a5 5 0 0 1 0-10" />
-                <path d="M21 12c-2.21 1.68-4.93 3-9 3" />
-                <path d="M3 12c2.21-1.68 4.93-3 9-3" />
-                <path d="M7 12h10" />
-                <line x1="19" y1="8" x2="5" y2="16" strokeWidth="1.5" strokeOpacity={showPassword ? "0" : "1"} />
-              </svg>
-              <button
-                type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50 relative overflow-hidden">
+      {/* Animated Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="blob-1 absolute w-96 h-96 rounded-full bg-slate-200/40 blur-3xl animate-blob"></div>
+        <div className="blob-2 absolute w-96 h-96 rounded-full bg-slate-300/40 blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="blob-3 absolute w-96 h-96 rounded-full bg-slate-200/40 blur-3xl animate-blob animation-delay-4000"></div>
+      </div>
+      
+      <div className="w-full max-w-md relative z-10">
+        <div className="bg-white/80 backdrop-blur-xl rounded-lg shadow-md border border-slate-200 p-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Reset Password</h2>
+            <p className="text-slate-800">Please enter your new password below</p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <div className="input-wrapper">
-              <input
-                id="confirmPassword"
-                type={showPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-                required
-              />
-              <svg 
-                className="password-icon" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-              >
-                <path d="M12 17a5 5 0 0 1 0-10" />
-                <path d="M21 12c-2.21 1.68-4.93 3-9 3" />
-                <path d="M3 12c2.21-1.68 4.93-3 9-3" />
-                <path d="M7 12h10" />
-                <line x1="19" y1="8" x2="5" y2="16" strokeWidth="1.5" strokeOpacity={showPassword ? "0" : "1"} />
-              </svg>
-            </div>
-          </div>
-
-          <div id="password-requirements" className="password-requirements">
-            <h3>Password Requirements</h3>
-            <ul>
-              <li className={newPassword.length >= 8 ? "met" : ""}>
-                At least 8 characters
-              </li>
-              <li className={/[A-Z]/.test(newPassword) ? "met" : ""}>
-                One uppercase letter
-              </li>
-              <li className={/[a-z]/.test(newPassword) ? "met" : ""}>
-                One lowercase letter
-              </li>
-              <li className={/\d/.test(newPassword) ? "met" : ""}>
-                One number
-              </li>
-              <li className={/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? "met" : ""}>
-                One special character
-              </li>
-            </ul>
-          </div>
-
-          {error && (
-            <div className="alert error" role="alert">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12" y2="16" />
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="alert success" role="alert">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
-              {success}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading || !newPassword || !confirmPassword}
-            className="submit-button"
-          >
-            {isLoading ? (
-              <>
-                <svg className="spinner" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="4" />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1">
+              <label htmlFor="newPassword" className="text-sm font-medium text-slate-800 block pl-1">
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  id="newPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  aria-describedby="password-requirements"
+                  className="w-full px-4 py-2 pl-10 bg-white border border-slate-300 focus:border-slate-800 focus:ring focus:ring-slate-800/20 rounded-md text-slate-900 transition-all"
+                  placeholder="Enter new password"
+                />
+                <svg 
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-800" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                 </svg>
-                <span>Resetting...</span>
-              </>
-            ) : (
-              "Reset Password"
-            )}
-          </button>
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                      <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
 
-          <div className="back-to-login">
-            <a href="/login">Back to login</a>
-          </div>
-        </form>
+            <div className="space-y-1">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-800 block pl-1">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  className="w-full px-4 py-2 pl-10 bg-white border border-slate-300 focus:border-slate-800 focus:ring focus:ring-slate-800/20 rounded-md text-slate-900 transition-all"
+                  placeholder="Confirm your password"
+                />
+                <svg 
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-800" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                </svg>
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 transition-colors"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                      <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div id="password-requirements" className="bg-slate-100 rounded-md border border-slate-200 p-4">
+              <h3 className="text-sm font-medium text-slate-900 mb-2">Password Requirements</h3>
+              <ul className="space-y-1 pl-1">
+                <li className={`text-xs flex items-center space-x-2 ${newPassword.length >= 8 ? "text-slate-900" : "text-slate-500"} transition-colors`}>
+                  <span>{newPassword.length >= 8 ? "●" : "○"}</span>
+                  <span>At least 8 characters</span>
+                </li>
+                <li className={`text-xs flex items-center space-x-2 ${/[A-Z]/.test(newPassword) ? "text-slate-900" : "text-slate-500"} transition-colors`}>
+                  <span>{/[A-Z]/.test(newPassword) ? "●" : "○"}</span>
+                  <span>One uppercase letter</span>
+                </li>
+                <li className={`text-xs flex items-center space-x-2 ${/[a-z]/.test(newPassword) ? "text-slate-900" : "text-slate-500"} transition-colors`}>
+                  <span>{/[a-z]/.test(newPassword) ? "●" : "○"}</span>
+                  <span>One lowercase letter</span>
+                </li>
+                <li className={`text-xs flex items-center space-x-2 ${/\d/.test(newPassword) ? "text-slate-900" : "text-slate-500"} transition-colors`}>
+                  <span>{/\d/.test(newPassword) ? "●" : "○"}</span>
+                  <span>One number</span>
+                </li>
+                <li className={`text-xs flex items-center space-x-2 ${/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? "text-slate-900" : "text-slate-500"} transition-colors`}>
+                  <span>{/[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? "●" : "○"}</span>
+                  <span>One special character</span>
+                </li>
+              </ul>
+            </div>
+
+            {error && (
+              <div className="flex items-center space-x-2 p-3 rounded-md bg-slate-100 border border-slate-300 text-slate-900 text-sm" role="alert">
+                <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12" y2="16" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="flex items-center space-x-2 p-3 rounded-md bg-slate-100 border border-slate-300 text-slate-900 text-sm" role="alert">
+                <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <span>{success}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading || !newPassword || !confirmPassword}
+              className="w-full py-2 px-4 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-md transition disabled:bg-slate-300 disabled:text-slate-500"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Resetting...</span>
+                </div>
+              ) : (
+                "Reset Password"
+              )}
+            </button>
+
+            <div className="text-center pt-2">
+              
+              <a href="/login" className="text-slate-600 hover:text-slate-800 text-sm inline-flex items-center transition-colors ">
+              <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                Back to login
+              </a>
+            </div>
+          </form>
+        </div>
       </div>
 
-      <style>{`
-       
-
-        .reset-password-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1.5rem;
-          background-color: var(--bg-dark);
-          color: var(--text-primary);
-        }
-
-        .reset-password-card {
-          width: 100%;
-          max-width: 28rem;
-          background: var(--card-bg);
-          border-radius: 0.75rem;
-          box-shadow: var(--card-shadow);
-          padding: 2.5rem;
-          border: 1px solid var(--border-color);
-          transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-        }
-        
-        .reset-password-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-header {
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-
-        .card-header h2 {
-          color: var(--text-primary);
-          font-size: 1.75rem;
-          font-weight: 600;
-          margin: 0 0 0.75rem 0;
-          letter-spacing: 0.5px;
-        }
-
-        .card-header p {
-          color: var(--text-secondary);
-          margin: 0;
-          font-size: 0.95rem;
-        }
-
-        .reset-password-form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .form-group label {
-          color: var(--text-primary);
-          font-weight: 500;
-          font-size: 0.9rem;
-          margin-left: 0.25rem;
-        }
-
-        .input-wrapper {
-          position: relative;
-        }
-
-        .input-wrapper input {
-          width: 100%;
-          padding: 0.875rem 1rem 0.875rem 2.75rem;
-          background-color: var(--input-bg);
-          border: 1px solid var(--border-color);
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          color: var(--text-primary);
-          transition: all var(--transition-speed);
-        }
-
-        .input-wrapper input:focus {
-          outline: none;
-          border-color: var(--accent-color);
-          box-shadow: 0 0 0 2px var(--accent-hover);
-        }
-
-        .input-wrapper input::placeholder {
-          color: var(--text-secondary);
-          opacity: 0.7;
-        }
-
-        .input-wrapper input:disabled {
-          background-color: rgba(26, 26, 26, 0.7);
-          color: var(--text-secondary);
-          cursor: not-allowed;
-        }
-
-        .password-icon {
-          position: absolute;
-          left: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 1.25rem;
-          height: 1.25rem;
-          color: var(--accent-color);
-        }
-
-        .toggle-password {
-          position: absolute;
-          right: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          background: none;
-          border: none;
-          color: var(--text-secondary);
-          font-size: 0.85rem;
-          font-weight: 500;
-          cursor: pointer;
-          padding: 0.25rem 0.5rem;
-          transition: color var(--transition-speed);
-        }
-
-        .toggle-password:hover {
-          color: var(--accent-color);
-        }
-
-        .toggle-password:focus {
-          outline: none;
-          color: var(--accent-color);
-        }
-
-        .password-requirements {
-          padding: 1rem;
-          border-radius: 0.5rem;
-          background-color: rgba(40, 40, 40, 0.5);
-          border: 1px solid var(--border-color);
-        }
-
-        .password-requirements h3 {
-          font-size: 0.95rem;
-          font-weight: 500;
-          color: var(--text-primary);
-          margin-bottom: 0.75rem;
-        }
-
-        .password-requirements ul {
-          list-style: none;
-          padding-left: 0.5rem;
-          margin: 0;
-        }
-
-        .password-requirements li {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 0.5rem;
-          color: var(--text-secondary);
-          font-size: 0.85rem;
-          transition: color var(--transition-speed);
-        }
-
-        .password-requirements li::before {
-          content: "○";
-          color: var(--text-secondary);
-          transition: color var(--transition-speed);
-        }
-
-        .password-requirements li.met {
-          color: var(--accent-green);
-        }
-
-        .password-requirements li.met::before {
-          content: "●";
-          color: var(--accent-green);
-        }
-
-        .alert {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 1rem;
-          border-radius: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .alert svg {
-          width: 1.25rem;
-          height: 1.25rem;
-          flex-shrink: 0;
-        }
-
-        .alert.error {
-          background-color: rgba(239, 68, 68, 0.1);
-          color: var(--error-color);
-          border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .alert.success {
-          background-color: rgba(16, 185, 129, 0.1);
-          color: var(--success-color);
-          border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .submit-button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          width: 100%;
-          padding: 0.875rem 1.5rem;
-          background-color: var(--accent-color);
-          color: white;
-          border: none;
-          border-radius: 0.5rem;
-          font-size: 1rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all var(--transition-speed);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .submit-button:before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-          transform: translateX(-100%);
-          transition: transform 0.6s;
-        }
-
-        .submit-button:hover:not(:disabled):before {
-          transform: translateX(100%);
-        }
-
-        .submit-button:hover:not(:disabled) {
-          background-color: rgba(52, 152, 219, 0.9);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px var(--glow-color);
-        }
-
-        .submit-button:active:not(:disabled) {
-          transform: translateY(0);
-        }
-
-        .submit-button:disabled {
-          background-color: var(--bg-dark-lighter);
-          color: var(--text-secondary);
-          cursor: not-allowed;
-        }
-
-        .spinner {
-          width: 1.25rem;
-          height: 1.25rem;
-          animation: spin 1.2s linear infinite;
-          stroke: currentColor;
-          stroke-dasharray: 60, 180;
-        }
-
-        .back-to-login {
-          text-align: center;
-          margin-top: 0.5rem;
-        }
-
-        .back-to-login a {
-          color: var(--accent-color);
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color var(--transition-speed);
-        }
-
-        .back-to-login a:hover {
-          color: var(--text-primary);
-          text-decoration: underline;
-        }
-
-        @keyframes spin {
+      <style jsx>{`
+        @keyframes blob {
           0% {
-            transform: rotate(0deg);
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
           }
           100% {
-            transform: rotate(360deg);
+            transform: translate(0px, 0px) scale(1);
           }
         }
-
-        @media (max-width: 640px) {
-          .reset-password-card {
-            padding: 2rem 1.5rem;
-          }
-          
-          .card-header h2 {
-            font-size: 1.5rem;
-          }
-          
-          .password-requirements {
-            padding: 0.75rem;
-          }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        .blob-1 {
+          top: 10%;
+          left: 10%;
+        }
+        .blob-2 {
+          top: 50%;
+          right: 10%;
+        }
+        .blob-3 {
+          bottom: 10%;
+          left: 30%;
         }
       `}</style>
     </div>

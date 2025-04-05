@@ -5,7 +5,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Home from './Pages/Home';
 import About from './Pages/About';
 import ContactUs from './Components/Contact';
-import BookAPro from './Pages/BookAPro/BookAPro';
 import Footer from "./Components/Footer";
 import Navbar from './Components/Navbar';
 
@@ -15,6 +14,11 @@ import LoginPage from './Pages/User/Login';
 import SignUpPage from './Pages/User/SignUp';
 import ForgotPassword from "./Pages/User/ResetPassword/ForgetPassword";
 import ResetPassword from "./Pages/User/ResetPassword/ResetPassword";
+
+// Book a Pro Routes
+import BookAPro from './Pages/BookAPro/BookAPro';
+import HireRequestForm from "./Pages/BookAPro/HireRequestForm";
+import RequestResponse from "./Pages/BookAPro/RequestResponse";
 
 // Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
@@ -102,7 +106,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/About-Us" element={<About />} />
           <Route path="/Contact-Us" element={<ContactUs />} />
-          <Route path="/ForgotPassword" element={<ForgotPassword />} />
+          <Route path="/Forgot-Password" element={<ForgotPassword />} />
           <Route path="/ResetPassword/:token" element={<ResetPassword />} />
 
           {/* Auth routes - redirect to home if already logged in */}
@@ -141,6 +145,30 @@ const App = () => {
                 userRole={userRole}
               >
                 <BookAPro />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Hire-Request-Form"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["user", "admin"]}
+                userRole={userRole}
+              >
+                <HireRequestForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/Request-Response"
+            element={
+              <ProtectedRoute
+                isLoggedIn={isLoggedIn}
+                allowedRoles={["user", "admin"]}
+                userRole={userRole}
+              >
+                <RequestResponse />
               </ProtectedRoute>
             }
           />

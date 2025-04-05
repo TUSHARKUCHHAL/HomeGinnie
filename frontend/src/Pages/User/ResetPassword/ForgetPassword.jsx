@@ -50,11 +50,11 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-800 relative overflow-hidden">
       {/* Enhanced Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden z-0">
-        <div className="floating-shape bg-slate-100/70 blur-3xl w-96 h-96 rounded-full absolute -top-20 -left-20 animate-float-slow"></div>
-        <div className="floating-shape bg-slate-200/70 blur-3xl w-96 h-96 rounded-full absolute top-1/4 right-10 animate-float-medium"></div>
-        <div className="floating-shape bg-slate-100/70 blur-3xl w-80 h-80 rounded-full absolute bottom-10 left-1/4 animate-float-fast"></div>
-        <div className="floating-shape bg-slate-200/70 blur-3xl w-64 h-64 rounded-full absolute -bottom-10 -right-10 animate-float-slow"></div>
+      <div className="absolute inset-0 overflow-hidden z-10">
+        <div className="floating-shape bg-slate-300/80 blur-3xl w-96 h-96 rounded-full absolute -top-20 -left-20 animate-float-slow"></div>
+        <div className="floating-shape bg-slate-400/30 blur-3xl w-96 h-96 rounded-full absolute top-1/4 right-10 animate-float-medium"></div>
+        <div className="floating-shape bg-slate-200/70 blur-3xl w-80 h-80 rounded-full absolute bottom-10 left-1/4 animate-float-fast"></div>
+        <div className="floating-shape bg-slate-600/20 blur-3xl w-64 h-64 rounded-full absolute -bottom-10 -right-10 animate-float-slow"></div>
         
         {/* Additional animated elements */}
         <div className="particle bg-slate-300/30 w-2 h-2 rounded-full absolute top-1/4 left-1/3 animate-particle-1"></div>

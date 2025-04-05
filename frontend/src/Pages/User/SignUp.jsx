@@ -245,8 +245,12 @@ const SignUpPage = () => {
     }
 
     // Validate password
-    if (password && password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
+    if (password) {
+      const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    
+      if (!strongPasswordRegex.test(password)) {
+        errors.password = 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.';
+      }
     }
 
     // Validate confirmPassword
