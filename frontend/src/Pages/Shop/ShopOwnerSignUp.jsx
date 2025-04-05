@@ -138,10 +138,11 @@ const ShopRegistrationForm = () => {
       if (!formData.phoneNumber.trim()) {
         stepErrors.phoneNumber = 'Phone number is required';
         isValid = false;
-      } else if (!/^(\+\d{1,3}[- ]?)?\d{10}$/.test(formData.phoneNumber.replace(/\s+/g, ''))) {
-        stepErrors.phoneNumber = 'Phone number is invalid';
+      } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
+        stepErrors.phoneNumber = 'Phone number must be exactly 10 digits';
         isValid = false;
       }
+      
       
       if (!formData.password) {
         stepErrors.password = 'Password is required';
@@ -149,10 +150,16 @@ const ShopRegistrationForm = () => {
       } else if (formData.password.length < 8) {
         stepErrors.password = 'Password must be at least 8 characters';
         isValid = false;
-      } else if (!/\d/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[A-Z]/.test(formData.password)) {
-        stepErrors.password = 'Password must contain at least one number, one lowercase and one uppercase letter';
+      } else if (
+        !/\d/.test(formData.password) ||                   // at least one number
+        !/[a-z]/.test(formData.password) ||                // at least one lowercase letter
+        !/[A-Z]/.test(formData.password) ||                // at least one uppercase letter
+        !/[!@#$%^&*(),.?":{}|<>_\-\\/~`+=\[\];']/g.test(formData.password) // at least one special character
+      ) {
+        stepErrors.password = 'Password must include at least one number, one lowercase, one uppercase, and one special character';
         isValid = false;
       }
+      
       
       if (formData.password !== formData.confirmPassword) {
         stepErrors.confirmPassword = 'Passwords do not match';
@@ -507,9 +514,7 @@ const ShopRegistrationForm = () => {
                       />
                     </div>
                     {renderError('password')}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Must be at least 8 characters long with a mix of uppercase, lowercase, numbers, and symbols
-                    </p>
+
                   </div>
 
                   <div className="mt-4">

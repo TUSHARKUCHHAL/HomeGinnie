@@ -23,7 +23,9 @@ import RequestResponse from "./Pages/BookAPro/RequestResponse";
 // Service Provider Routes
 import ServiceProviderSignUp from './Pages/ServiceProvider/ServiceProviderSignUp';
 import ServiceProviderLogin from './Pages/ServiceProvider/ServiceProviderLogin';
-import ServiceProviderDashboard from './Pages/ServiceProvider/ServiceProviderDashboard';
+
+// Find a job Routes
+import FindJob from './Pages/FindJob/FindJob';
 
 // Shop Owner Routes
 import ShopOwnerSignUp from './Pages/Shop/ShopOwnerSignUp'
@@ -173,14 +175,14 @@ const App = () => {
             }
           />
           <Route
-            path="/service-provider-dashboard"
+            path="/Find-a-Job"
             element={
               <ProtectedRoute
                 isLoggedIn={isLoggedIn}
                 allowedRoles={["service-provider", "admin"]}
                 userRole={userRole}
               >
-                <ServiceProviderDashboard />
+                <FindJob />
               </ProtectedRoute>
             }
           />
