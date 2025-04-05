@@ -110,7 +110,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/About-Us" element={<About />} />
           <Route path="/Contact-Us" element={<ContactUs />} />
-          <Route path="/Forgot-Password" element={<ForgotPassword />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
           <Route path="/ResetPassword/:token" element={<ResetPassword />} />
           <Route path="/ServiceProvider-Forgot-Password" element={<ServiceProviderForgetPassword />} />
           <Route path="/ServiceProvider-ResetPassword/:token" element={<ServiceProviderResetPassword />} />

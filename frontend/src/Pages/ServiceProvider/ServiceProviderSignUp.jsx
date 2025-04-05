@@ -250,7 +250,8 @@ const ServiceProviderSignUp = () => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   
   // Phone number validation (simple version)
-  const phoneRegex = /^\+?[0-9]{10,15}$/;
+  const phoneRegex = /^\d{10}$/;
+
   
   // Postal code validation
   const postalCodeRegex = /^[0-9]{6}$/;
