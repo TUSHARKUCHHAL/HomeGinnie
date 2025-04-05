@@ -432,7 +432,7 @@ router.post("/forgot-password", async (req, res) => {
       return handleError(res, saveError, "Failed to save reset token");
     }
 
-    const resetUrl = `${process.env.FRONTEND_URL}/shop-owner/resetpassword/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/ShopOwner-ResetPassword/${resetToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -470,6 +470,7 @@ router.post("/forgot-password", async (req, res) => {
     handleError(res, error);
   }
 });
+// Add this updated route handler to your shopOwnerRoutes.js file
 
 // @route   POST /reset-password/:token
 // @desc    Reset shop owner password using token
@@ -479,32 +480,33 @@ router.post("/reset-password/:token", async (req, res) => {
     const { token } = req.params;
     const { newPassword } = req.body;
 
-    // Validate password strength using the same rules as registration
+    // Input validation
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    // Validate password strength
     if (newPassword.length < 8) {
-      return res.status(400).json({ 
-        message: "Password must be at least 8 characters long" 
-      });
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
     }
 
     if (!/\d/.test(newPassword)) {
-      return res.status(400).json({
-        message: "Password must contain at least one number"
-      });
+      return res.status(400).json({ message: "Password must contain at least one number" });
     }
 
     if (!/[a-z]/.test(newPassword)) {
-      return res.status(400).json({
-        message: "Password must contain at least one lowercase letter"
-      });
+      return res.status(400).json({ message: "Password must contain at least one lowercase letter" });
     }
 
     if (!/[A-Z]/.test(newPassword)) {
-      return res.status(400).json({
-        message: "Password must contain at least one uppercase letter"
-      });
+      return res.status(400).json({ message: "Password must contain at least one uppercase letter" });
     }
 
-    // Verify token with error handling
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      return res.status(400).json({ message: "Password must contain at least one special character" });
+    }
+
+    // Verify token
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
@@ -512,15 +514,10 @@ router.post("/reset-password/:token", async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    // Find shop owner with proper query
-    const shopOwner = await ShopOwner.findById(decoded.id).exec();
+    // Find shop owner
+    const shopOwner = await ShopOwner.findById(decoded.id);
     if (!shopOwner) {
       return res.status(404).json({ message: "Shop owner not found" });
-    }
-
-    // Check if reset token has expired
-    if (!shopOwner.resetPasswordExpires || shopOwner.resetPasswordExpires < Date.now()) {
-      return res.status(400).json({ message: "Password reset token has expired" });
     }
 
     // Hash new password
@@ -537,10 +534,12 @@ router.post("/reset-password/:token", async (req, res) => {
       await shopOwner.save();
       res.json({ message: "Password reset successful" });
     } catch (saveError) {
-      return handleError(res, saveError, "Failed to update password");
+      console.error("Failed to update password:", saveError);
+      return res.status(500).json({ message: "Failed to update password" });
     }
   } catch (error) {
-    handleError(res, error);
+    console.error("Password reset error:", error);
+    res.status(500).json({ message: "Server error during password reset" });
   }
 });
 

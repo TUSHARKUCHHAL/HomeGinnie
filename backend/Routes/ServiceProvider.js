@@ -362,7 +362,7 @@ router.post("/forgot-password", async (req, res) => {
       return handleError(res, saveError, "Failed to save reset token");
     }
 
-    const resetUrl = `${process.env.FRONTEND_URL}/service-provider/resetpassword/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/ServiceProvider-ResetPassword/${resetToken}`;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -434,6 +434,12 @@ router.post("/reset-password/:token", async (req, res) => {
       });
     }
 
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must contain at least one special character"
+      });
+    }
+
     // Verify token with error handling
     let decoded;
     try {
@@ -446,11 +452,6 @@ router.post("/reset-password/:token", async (req, res) => {
     const serviceProvider = await ServiceProvider.findById(decoded.id).exec();
     if (!serviceProvider) {
       return res.status(404).json({ message: "Service provider not found" });
-    }
-
-    // Check if reset token has expired
-    if (!serviceProvider.resetPasswordExpires || serviceProvider.resetPasswordExpires < Date.now()) {
-      return res.status(400).json({ message: "Password reset token has expired" });
     }
 
     // Hash new password
@@ -473,7 +474,6 @@ router.post("/reset-password/:token", async (req, res) => {
     handleError(res, error);
   }
 });
-
 
 
 module.exports = router;
