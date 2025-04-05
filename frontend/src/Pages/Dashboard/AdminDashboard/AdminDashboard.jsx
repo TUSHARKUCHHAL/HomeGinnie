@@ -1,4 +1,3 @@
-
 // export default AdminDashboard;
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -11,10 +10,10 @@ import {
   MailIcon
 } from 'lucide-react';
 // Import tab components
-import ServicesTab from './Services';
+import ServicesTab from './Services/Services';
 import SupportTab from './Support';
 import UsersTab from './Users';
-import CampaignsTab from './Campaigns';
+import CampaignsTab from './Campaigns/Campaigns';
 import ContactTab from './Contact';
 
 // Page Title Component

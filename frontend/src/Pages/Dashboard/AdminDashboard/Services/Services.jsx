@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { PlusIcon, Edit2Icon, Trash2Icon } from 'lucide-react';
+import AddServiceForm from './AddServiceForm'; // Import the AddServiceForm component
 
 const ServicesTab = () => {
   const [services, setServices] = useState([
@@ -10,6 +12,17 @@ const ServicesTab = () => {
     { id: 4, name: 'SEO Optimization', description: 'Search engine optimization services', status: 'active', price: '$500' },
     { id: 5, name: 'Content Writing', description: 'Blog and website content creation', status: 'inactive', price: '$300' },
   ]);
+  const [isFormOpen, setIsFormOpen] = useState(false); // State to control form visibility
+
+  // Function to handle adding a new service
+  const handleAddService = () => {
+    setIsFormOpen(true);
+  };
+
+  // Function to handle form close
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+  };
 
   // Animation variants for list items
   const container = {
@@ -31,7 +44,10 @@ const ServicesTab = () => {
     <div className="bg-white rounded-xl shadow p-6">
       <div className="flex justify-between items-center mb-6 mt">
         <h3 className="text-lg font-semibold">Available Services</h3>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors">
+        <button 
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors"
+          onClick={handleAddService} // Add onClick handler
+        >
           <PlusIcon size={16} />
           <span>Add Service</span>
         </button>
@@ -48,8 +64,6 @@ const ServicesTab = () => {
             <tr className="border-b border-slate-200">
               <th className="text-left py-3 px-4 font-medium text-slate-500">Name</th>
               <th className="text-left py-3 px-4 font-medium text-slate-500">Description</th>
-              <th className="text-left py-3 px-4 font-medium text-slate-500">Price</th>
-              <th className="text-left py-3 px-4 font-medium text-slate-500">Status</th>
               <th className="text-left py-3 px-4 font-medium text-slate-500">Actions</th>
             </tr>
           </thead>
@@ -58,14 +72,7 @@ const ServicesTab = () => {
               <motion.tr key={service.id} variants={item} className="border-b border-slate-100">
                 <td className="py-3 px-4 font-medium">{service.name}</td>
                 <td className="py-3 px-4 text-slate-600">{service.description}</td>
-                <td className="py-3 px-4">{service.price}</td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    service.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {service.status}
-                  </span>
-                </td>
+
                 <td className="py-3 px-4">
                   <div className="flex space-x-2">
                     <button className="p-1 hover:bg-slate-100 rounded">
@@ -81,6 +88,12 @@ const ServicesTab = () => {
           </tbody>
         </motion.table>
       </div>
+
+      {/* Add the service form component */}
+      <AddServiceForm 
+        isOpen={isFormOpen} 
+        onClose={handleFormClose} 
+      />
     </div>
   );
 };

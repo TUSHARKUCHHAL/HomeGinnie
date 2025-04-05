@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, TrendingUpIcon, SendIcon, Edit3Icon, Trash2Icon, PlusIcon } from 'lucide-react';
+import { Calendar, TrendingUpIcon, SendIcon, Edit3Icon, Trash2Icon, PlusIcon, Bell } from 'lucide-react';
+import NotificationModal from './NotificationModal';
+
+
 
 const CampaignsTab = () => {
   const [campaigns, setCampaigns] = useState([
@@ -49,6 +52,9 @@ const CampaignsTab = () => {
       conversion: '4.7%'
     },
   ]);
+  
+  // Add state for notification modal
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -81,10 +87,19 @@ const CampaignsTab = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold">Marketing Campaigns</h3>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors">
-            <PlusIcon size={16} />
-            <span>Create Campaign</span>
-          </button>
+          <div className='flex space-x-4'>
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors gap-2">
+              <PlusIcon size={16} />
+              <span>Create Campaign</span>
+            </button>
+            <button 
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition-colors gap-2"
+              onClick={() => setIsNotificationModalOpen(true)}
+            >
+              <Bell size={16} />
+              <span>Create Notification</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -180,6 +195,12 @@ const CampaignsTab = () => {
           </table>
         </motion.div>
       </div>
+      
+      {/* Notification Modal */}
+      <NotificationModal 
+        isOpen={isNotificationModalOpen} 
+        onClose={() => setIsNotificationModalOpen(false)} 
+      />
     </div>
   );
 };
