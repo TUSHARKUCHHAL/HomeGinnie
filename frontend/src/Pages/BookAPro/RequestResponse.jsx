@@ -1,43 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Filter, MapPin, Clock, DollarSign, Award, X, MessageSquare, Phone, UserCheck } from 'lucide-react';
+import { Star, Filter, MapPin, Clock, IndianRupee, Award, X, MessageSquare, Phone, UserCheck } from 'lucide-react';
 
 const RequestResponse = ({ userAddress }) => {
   // Sample data - in a real app, this would come from an API/websocket
   const [serviceProviders, setServiceProviders] = useState([
     {
       id: 1,
-      name: "Alex Carpenter",
+      name: "Hardik shah",
       rating: 4.8,
       experience: 7,
       price: 85,
       distance: 3.2,
       responseTime: "10 min ago",
-      avatar: "/api/placeholder/40/40",
+      avatar: "http://localhost:5500/uploads/download.jpeg",
       specialization: "Electrical Work",
       verified: true
     },
     {
       id: 2,
-      name: "Sarah Johnson",
+      name: "Rakesh Prasad",
       rating: 4.6,
       experience: 5,
       price: 75,
       distance: 1.8,
       responseTime: "15 min ago",
-      avatar: "/api/placeholder/40/40",
+      avatar: "http://localhost:5500/uploads/images.jpeg",
       specialization: "Plumbing",
       verified: true
     },
     {
       id: 3,
-      name: "Miguel Rodriguez",
+      name: "Madhur Virli",
       rating: 4.9,
       experience: 10,
       price: 95,
       distance: 4.5,
       responseTime: "5 min ago",
-      avatar: "/api/placeholder/40/40",
+      avatar: "http://localhost:5500/uploads/images2.jpeg",
       specialization: "Carpentry",
       verified: true
     }
@@ -294,8 +294,8 @@ const RequestResponse = ({ userAddress }) => {
                   <div className="bg-slate-50 p-3 rounded-lg flex flex-col">
                     <span className="text-slate-500 text-sm mb-1">Price</span>
                     <span className="text-slate-800 font-medium flex items-center">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      ${provider.price}/hr
+                      <IndianRupee className="h-4 w-4 mr-1" />
+                      {provider.price}/hr
                     </span>
                   </div>
                   
