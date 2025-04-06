@@ -334,7 +334,7 @@ const LoginPage = () => {
             {/* Sign Up Link - Inside the card */}
             <p className="mt-6 text-center text-sm text-slate-600">
               Don't have an account?{' '}
-              <a href="/SignUp" className="font-medium text-slate-800 hover:text-slate-700">
+              <a href="/ServiceProvider-SignUp" className="font-medium text-slate-800 hover:text-slate-700">
                 Create an account
               </a>
             </p>

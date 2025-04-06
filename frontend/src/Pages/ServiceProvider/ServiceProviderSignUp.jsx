@@ -1138,6 +1138,16 @@ const renderFormStep = () => {
             </a>
           </p>
         </div>
+
+         {/* Switch to provider signup */}
+        <div className="text-center">
+          <p className="mt-6 text-center text-sm text-slate-600">
+                Already have an account as Service Provider?{' '}
+                <a href="/ServiceProvider-Login" className="font-medium hover:text-glow underline hover:text-slate-900">
+                  Sign in
+                </a>
+              </p>
+        </div>
       </div>
       
       {/* Fixed Continue Button on Mobile - Shows only for step < totalSteps */}

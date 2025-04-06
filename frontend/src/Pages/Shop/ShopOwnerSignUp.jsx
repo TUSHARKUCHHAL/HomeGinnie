@@ -771,9 +771,19 @@ const ShopRegistrationForm = () => {
             </a>
           </p>
         </div>
+
+        <div className="text-center mt-4">
+        <p className="mt-6 text-center text-sm text-slate-600">
+              Already have an account of Shop Owner?{' '}
+              <a href="/ShopOwner-Login" className="font-medium text-slate-800 underline hover:text-slate-700">
+                Sign in
+              </a>  
+            </p>  
+        </div>
       </div>
     </div>
   );
 };
 
 export default ShopRegistrationForm;
+
