@@ -62,6 +62,8 @@ const validateHireRequest = [
     .isLength({ min: 10 })
     .withMessage('Please provide more details (at least 10 characters)'),
   
+
+  
   body('preferredDate')
     .custom(value => {
       try {
@@ -87,6 +89,7 @@ const validateHireRequest = [
     .trim()
     .notEmpty()
     .withMessage('Please select a preferred time slot')
+
 ];
 
 // POST - Create a new hire request (protected route)

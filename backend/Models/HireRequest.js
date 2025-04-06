@@ -110,6 +110,11 @@ const hireRequestSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'],
     default: 'pending'
   },
+
+  price: {
+    type: Number,
+    default: null
+  },
   
   // Additional timestamps for tracking job progress
   acceptedAt: Date,

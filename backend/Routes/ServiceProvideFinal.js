@@ -106,6 +106,7 @@ router.post('/accept-request/:requestId', protectServiceProvider, async (req, re
     };
     hireRequest.status = 'confirmed';
     hireRequest.acceptedAt = Date.now();
+    hireRequest.price = req.body.price ; // Optional price field
     
     const updatedRequest = await hireRequest.save();
     
@@ -279,54 +280,6 @@ router.get('/job-history', protectServiceProvider, async (req, res) => {
   }
 });
 
-// POST - Accept a hire request
-router.post('/accept-request/:requestId', protectServiceProvider, async (req, res) => {
-  try {
-    const hireRequest = await HireRequest.findById(req.params.requestId);
-    
-    if (!hireRequest) {
-      return res.status(404).json({
-        success: false,
-        message: 'Request not found'
-      });
-    }
-    
-    // Check if request is still pending
-    if (hireRequest.status !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        message: 'This request is no longer available'
-      });
-    }
-    
-    // Update the hire request with service provider info and change status
-    hireRequest.serviceProvider = req.serviceProvider._id;
-    hireRequest.serviceProviderDetails = {
-      name: req.serviceProvider.name,
-      email: req.serviceProvider.email,
-      phone: req.serviceProvider.phone
-    };
-    hireRequest.status = 'confirmed';
-    hireRequest.acceptedAt = Date.now();
-    
-    const updatedRequest = await hireRequest.save();
-    
-    // Optionally, you could send a notification to the user here
-    
-    res.status(200).json({
-      success: true,
-      message: 'Request accepted successfully',
-      data: updatedRequest
-    });
-  } catch (error) {
-    console.error('Error accepting request:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred while accepting the request',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
 
 // POST - Decline a hire request
 router.post('/decline-request/:requestId', protectServiceProvider, async (req, res) => {

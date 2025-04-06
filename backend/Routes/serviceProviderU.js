@@ -5,30 +5,30 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const config = require('config');
-
 const ServiceProvider = require('../Models/ServiceProvider');
 const HireRequest = require('../Models/HireRequest');
 const User = require('../Models/User');
 
 // Middleware
-const auth = (req, res, next) => {
-  // Get token from header
-  const token = req.header('x-auth-token');
+const auth = async (req, res, next) => {
+  let token;
 
-  // Check if no token
-  if (!token) {
-    return res.status(401).json({ msg: 'No token, authorization denied' });
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select('-password');
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401);
+      throw new Error('Not authorized, token failed');
+    }
   }
 
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, config.get('jwtSecret'));
-
-    // Add user from payload
-    req.user = decoded.user;
-    next();
-  } catch (err) {
-    res.status(401).json({ msg: 'Token is not valid' });
+  if (!token) {
+    res.status(401);
+    throw new Error('Not authorized, no token');
   }
 };
 
@@ -474,6 +474,7 @@ router.post(
       check('contactNumber', 'Contact number is required').notEmpty(),
       check('serviceProviderId', 'Service provider ID is required').notEmpty(),
       check('serviceType', 'Service type is required').notEmpty(),
+      check('serviceDescription', 'Service description is required').notEmpty(),
     ]
   ],
   async (req, res) => {
@@ -539,25 +540,55 @@ router.post(
 );
 
 // @route   GET api/service-providers/hire-requests
-// @desc    Get all hire requests for service provider
+// @desc    Get all hire requests for logged in user (either service provider or regular user)
 // @access  Private
 router.get('/hire-requests', auth, async (req, res) => {
   try {
     // Determine if user is a service provider or regular user
-    const userType = req.user.type || 'user';
     let query = {};
     
-    if (userType === 'serviceProvider') {
+    if (req.user.type === 'serviceProvider') {
+      // For service providers, find requests where they are the provider
       query.serviceProvider = req.user.id;
     } else {
+      // For regular users, find requests they created
       query.user = req.user.id;
     }
     
     const hireRequests = await HireRequest.find(query)
       .populate('serviceProvider', 'firstName lastName profileImage rating')
+      .populate('user', 'name email profileImage')
       .sort({ createdAt: -1 });
     
     res.json(hireRequests);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   GET api/service-providers/hire-requests/:id
+// @desc    Get hire request by ID
+// @access  Private
+router.get('/hire-requests/:id', auth, async (req, res) => {
+  try {
+    const hireRequest = await HireRequest.findById(req.params.id)
+      .populate('serviceProvider', 'firstName lastName profileImage rating services hourlyRate')
+      .populate('user', 'name email profileImage');
+      
+    if (!hireRequest) {
+      return res.status(404).json({ msg: 'Hire request not found' });
+    }
+    
+    // Make sure user has permission to view this request
+    if (
+      hireRequest.user._id.toString() !== req.user.id && 
+      hireRequest.serviceProvider._id.toString() !== req.user.id
+    ) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+    
+    res.json(hireRequest);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -582,9 +613,22 @@ router.put('/hire-requests/:id', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Hire request not found' });
     }
 
-    // Make sure service provider owns the request
-    if (hireRequest.serviceProvider.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Not authorized' });
+    // Make sure user has permission to update this request
+    if (req.user.type === 'serviceProvider') {
+      // Service providers can only update requests assigned to them
+      if (hireRequest.serviceProvider.toString() !== req.user.id) {
+        return res.status(401).json({ msg: 'Not authorized' });
+      }
+    } else {
+      // Regular users can only update their own requests
+      if (hireRequest.user.toString() !== req.user.id) {
+        return res.status(401).json({ msg: 'Not authorized' });
+      }
+      
+      // Users can only cancel their own requests
+      if (status !== 'cancelled') {
+        return res.status(400).json({ msg: 'Users can only cancel requests' });
+      }
     }
 
     // Update request status
@@ -592,15 +636,16 @@ router.put('/hire-requests/:id', auth, async (req, res) => {
     
     // Add response message if provided
     if (responseMessage) {
+      const senderType = req.user.type === 'serviceProvider' ? 'serviceProvider' : 'user';
       hireRequest.messages.push({
-        sender: 'serviceProvider',
+        sender: senderType,
         message: responseMessage,
         timestamp: Date.now()
       });
     }
 
     // If declining, add to declined requests
-    if (status === 'declined') {
+    if (status === 'declined' && req.user.type === 'serviceProvider') {
       const serviceProvider = await ServiceProvider.findById(req.user.id);
       if (serviceProvider) {
         serviceProvider.declinedRequests.push(hireRequest._id);
@@ -608,6 +653,51 @@ router.put('/hire-requests/:id', auth, async (req, res) => {
       }
     }
 
+    await hireRequest.save();
+    
+    res.json(hireRequest);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   POST api/service-providers/hire-requests/:id/message
+// @desc    Add a message to a hire request
+// @access  Private
+router.post('/hire-requests/:id/message', auth, async (req, res) => {
+  try {
+    const { message } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ msg: 'Message is required' });
+    }
+    
+    const hireRequest = await HireRequest.findById(req.params.id);
+    
+    if (!hireRequest) {
+      return res.status(404).json({ msg: 'Hire request not found' });
+    }
+    
+    // Make sure user has permission to message in this request
+    if (
+      hireRequest.user.toString() !== req.user.id && 
+      hireRequest.serviceProvider.toString() !== req.user.id
+    ) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+    
+    // Determine sender type
+    const senderType = hireRequest.serviceProvider.toString() === req.user.id ? 
+      'serviceProvider' : 'user';
+    
+    // Add message
+    hireRequest.messages.push({
+      sender: senderType,
+      message,
+      timestamp: Date.now()
+    });
+    
     await hireRequest.save();
     
     res.json(hireRequest);
@@ -647,9 +737,11 @@ router.post(
 
       // Create new feedback
       const newFeedback = {
+        user: req.user.id,
         heading,
         description,
         media,
+        rating: parseFloat(rating),
         createdAt: Date.now()
       };
 
