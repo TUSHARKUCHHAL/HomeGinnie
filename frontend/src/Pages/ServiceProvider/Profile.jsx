@@ -27,6 +27,20 @@ const ServiceProviderProfile = () => {
       description: '',
     },
   });
+  
+  // Form validation state
+  const [validationErrors, setValidationErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    alternateNumber: '',
+    'address.street': '',
+    'address.city': '',
+    'address.state': '',
+    'address.postalCode': '',
+    'experience.years': '',
+  });
 
   // Available services options
   const serviceOptions = [
@@ -79,9 +93,85 @@ const ServiceProviderProfile = () => {
     fetchProfile();
   }, [navigate]);
 
+  // Validate a single field
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (!value.trim()) error = 'This field is required';
+        else if (value.trim().length < 2) error = 'Must be at least 2 characters';
+        break;
+      case 'email':
+        if (!value.trim()) error = 'Email is required';
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = 'Invalid email format';
+        break;
+      case 'phoneNumber':
+        if (!value.trim()) error = 'Phone number is required';
+        else if (!/^\d{10}$/.test(value.replace(/[^\d]/g, ''))) 
+          error = 'Phone number must be 10 digits';
+        break;
+      case 'alternateNumber':
+        if (value.trim() && !/^\d{10}$/.test(value.replace(/[^\d]/g, ''))) 
+          error = 'Phone number must be 10 digits';
+        break;
+      case 'address.street':
+      case 'address.city':
+      case 'address.state':
+        if (!value.trim()) error = 'This field is required';
+        break;
+      case 'address.postalCode':
+        if (!value.trim()) error = 'Postal code is required';
+        else if (!/^\d{5}(-\d{4})?$/.test(value.trim())) error = 'Invalid postal code format';
+        break;
+      case 'experience.years':
+        if (value < 0) error = 'Years must be a positive number';
+        break;
+      default:
+        break;
+    }
+    
+    return error;
+  };
+
+  // Validate all fields at once
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+    
+    // Personal Info
+    errors.firstName = validateField('firstName', profileData.firstName);
+    errors.lastName = validateField('lastName', profileData.lastName);
+    errors.email = validateField('email', profileData.email);
+    errors.phoneNumber = validateField('phoneNumber', profileData.phoneNumber);
+    errors.alternateNumber = validateField('alternateNumber', profileData.alternateNumber);
+    
+    // Address
+    errors['address.street'] = validateField('address.street', profileData.address?.street);
+    errors['address.city'] = validateField('address.city', profileData.address?.city);
+    errors['address.state'] = validateField('address.state', profileData.address?.state);
+    errors['address.postalCode'] = validateField('address.postalCode', profileData.address?.postalCode);
+    
+    // Experience
+    errors['experience.years'] = validateField('experience.years', profileData.experience?.years);
+    
+    // Check if any errors exist
+    for (const key in errors) {
+      if (errors[key]) {
+        isValid = false;
+        break;
+      }
+    }
+    
+    setValidationErrors(errors);
+    return isValid;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
+    // Update form data
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setProfileData(prevData => ({
@@ -97,6 +187,13 @@ const ServiceProviderProfile = () => {
         [name]: value,
       }));
     }
+    
+    // Validate field on change
+    const errorMessage = validateField(name, value);
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: errorMessage
+    }));
   };
 
   const handleServiceChange = (service) => {
@@ -114,6 +211,14 @@ const ServiceProviderProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate all fields before submission
+    const isValid = validateForm();
+    if (!isValid) {
+      setError('Please fix the form errors before submitting');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
@@ -180,6 +285,51 @@ const ServiceProviderProfile = () => {
     );
   }
 
+  // Helper function for input field rendering with validation
+  const renderInputField = (label, name, type = 'text', required = true, placeholder = '') => {
+    // Get the actual value from nested objects if needed
+    let value = '';
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      value = profileData[parent]?.[child] || '';
+    } else {
+      value = profileData[name] || '';
+    }
+    
+    const errorMessage = validationErrors[name];
+    
+    return (
+      <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {isEditing ? (
+          <div>
+            <input
+              type={type}
+              id={name}
+              name={name}
+              value={value}
+              onChange={handleChange}
+              className={`w-full p-2 border ${
+                errorMessage ? 'border-red-500' : 'border-gray-300'
+              } rounded-md focus:outline-none focus:ring-2 ${
+                errorMessage ? 'focus:ring-red-500' : 'focus:ring-blue-500'
+              }`}
+              placeholder={placeholder}
+              required={required}
+            />
+            {errorMessage && (
+              <p className="mt-1 text-sm text-red-600">{errorMessage}</p>
+            )}
+          </div>
+        ) : (
+          <p className="text-gray-800">{value || 'Not provided'}</p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto mt-20">
@@ -189,7 +339,14 @@ const ServiceProviderProfile = () => {
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold text-white">My Profile</h1>
               <button
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={() => {
+                  setIsEditing(!isEditing);
+                  if (isEditing) {
+                    // Reset validation errors when canceling edit
+                    setValidationErrors({});
+                    setError(null);
+                  }
+                }}
                 className="px-4 py-2 bg-white text-slate-900 rounded-md font-medium shadow hover:bg-gray-100 transition"
                 type="button"
               >
@@ -221,91 +378,17 @@ const ServiceProviderProfile = () => {
 
           {/* Profile Content */}
           <div className="p-8">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Personal Information */}
                 <div className="col-span-2">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">Personal Information</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          id="firstName"
-                          name="firstName"
-                          value={profileData.firstName || ''}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.firstName || 'Not provided'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          id="lastName"
-                          name="lastName"
-                          value={profileData.lastName || ''}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.lastName || 'Not provided'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      {isEditing ? (
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={profileData.email || ''}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.email || 'Not provided'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      {isEditing ? (
-                        <input
-                          type="tel"
-                          id="phoneNumber"
-                          name="phoneNumber"
-                          value={profileData.phoneNumber || ''}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.phoneNumber || 'Not provided'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="alternateNumber" className="block text-sm font-medium text-gray-700 mb-1">Alternate Number</label>
-                      {isEditing ? (
-                        <input
-                          type="tel"
-                          id="alternateNumber"
-                          name="alternateNumber"
-                          value={profileData.alternateNumber || ''}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.alternateNumber || 'Not provided'}</p>
-                      )}
-                    </div>
+                    {renderInputField('First Name', 'firstName')}
+                    {renderInputField('Last Name', 'lastName')}
+                    {renderInputField('Email', 'email', 'email')}
+                    {renderInputField('Phone Number', 'phoneNumber', 'tel')}
+                    {renderInputField('Alternate Number', 'alternateNumber', 'tel', false)}
                   </div>
                 </div>
 
@@ -314,69 +397,11 @@ const ServiceProviderProfile = () => {
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">Address</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                      <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-1">Street</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          id="street"
-                          name="address.street"
-                          value={profileData.address?.street || ""}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.address?.street || "No street address provided"}</p>
-                      )}
+                      {renderInputField('Street', 'address.street')}
                     </div>
-                    <div>
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          id="city"
-                          name="address.city"
-                          value={profileData.address?.city || ""}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.address?.city || "No city provided"}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          id="state"
-                          name="address.state"
-                          value={profileData.address?.state || ""}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.address?.state || "No state provided"}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          id="postalCode"
-                          name="address.postalCode"
-                          value={profileData.address?.postalCode || ""}
-                          onChange={handleChange}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      ) : (
-                        <p className="text-gray-800">{profileData.address?.postalCode || "No postal code provided"}</p>
-                      )}
-                    </div>
+                    {renderInputField('City', 'address.city')}
+                    {renderInputField('State', 'address.state')}
+                    {renderInputField('Postal Code', 'address.postalCode')}
                   </div>
                 </div>
 
@@ -386,25 +411,32 @@ const ServiceProviderProfile = () => {
                   
                   {/* Services */}
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Services Offered</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Services Offered <span className="text-red-500">*</span>
+                    </label>
                     {isEditing ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                        {serviceOptions.map((service) => (
-                          <div key={service} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              id={`service-${service}`}
-                              checked={Array.isArray(profileData.services) && profileData.services.includes(service)}
-                              onChange={() => handleServiceChange(service)}
-                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                              aria-label={service}
-                            />
-                            <label htmlFor={`service-${service}`} className="ml-2 text-sm text-gray-700">
-                              {service}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                          {serviceOptions.map((service) => (
+                            <div key={service} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`service-${service}`}
+                                checked={Array.isArray(profileData.services) && profileData.services.includes(service)}
+                                onChange={() => handleServiceChange(service)}
+                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                aria-label={service}
+                              />
+                              <label htmlFor={`service-${service}`} className="ml-2 text-sm text-gray-700">
+                                {service}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        {Array.isArray(profileData.services) && profileData.services.length === 0 && (
+                          <p className="mt-1 text-sm text-red-600">Please select at least one service</p>
+                        )}
+                      </>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {Array.isArray(profileData.services) && profileData.services.length > 0 ? (
@@ -426,18 +458,29 @@ const ServiceProviderProfile = () => {
                   {/* Experience */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                      <label htmlFor="experienceYears" className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+                      <label htmlFor="experienceYears" className="block text-sm font-medium text-gray-700 mb-1">
+                        Years of Experience <span className="text-red-500">*</span>
+                      </label>
                       {isEditing ? (
-                        <input
-                          type="number"
-                          id="experienceYears"
-                          name="experience.years"
-                          value={profileData.experience?.years || 0}
-                          onChange={handleChange}
-                          min="0"
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
+                        <div>
+                          <input
+                            type="number"
+                            id="experienceYears"
+                            name="experience.years"
+                            value={profileData.experience?.years || 0}
+                            onChange={handleChange}
+                            min="0"
+                            className={`w-full p-2 border ${
+                              validationErrors['experience.years'] ? 'border-red-500' : 'border-gray-300'
+                            } rounded-md focus:outline-none focus:ring-2 ${
+                              validationErrors['experience.years'] ? 'focus:ring-red-500' : 'focus:ring-blue-500'
+                            }`}
+                            required
+                          />
+                          {validationErrors['experience.years'] && (
+                            <p className="mt-1 text-sm text-red-600">{validationErrors['experience.years']}</p>
+                          )}
+                        </div>
                       ) : (
                         <p className="text-gray-800">
                           {profileData.experience?.years !== undefined 
@@ -450,7 +493,9 @@ const ServiceProviderProfile = () => {
 
                   {/* Experience Description */}
                   <div>
-                    <label htmlFor="experienceDescription" className="block text-sm font-medium text-gray-700 mb-1">Experience Description</label>
+                    <label htmlFor="experienceDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                      Experience Description
+                    </label>
                     {isEditing ? (
                       <textarea
                         id="experienceDescription"
@@ -506,21 +551,6 @@ const ServiceProviderProfile = () => {
                 </div>
               )}
             </form>
-          </div>
-        </div>
-
-        {/* Password Reset Section */}
-        <div className="bg-white rounded-lg shadow overflow-hidden mt-6">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Password Management</h2>
-            <p className="text-gray-600 mb-4">Need to change your password? You can request a password reset.</p>
-            <button
-              type="button"
-              onClick={() => navigate('/forgot-password')}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-medium hover:bg-gray-300 transition"
-            >
-              Reset Password
-            </button>
           </div>
         </div>
       </div>
