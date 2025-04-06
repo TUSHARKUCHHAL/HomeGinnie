@@ -12,7 +12,7 @@ const productRoutes = require('./Routes/Products');
 const path = require('path');
 
 const serviceProvider = require('./Routes/ServiceProvideFinal');
-
+const hireRequest = require('./Routes/hireRequestFinal');
 
 // Load environment variables
 dotenv.config();
