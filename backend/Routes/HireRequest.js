@@ -4,6 +4,7 @@ const HireRequest = require('../Models/HireRequest');
 const { body, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const User = require('../Models/User');
+const ServiceProvider = require('../Models/ServiceProvider');
 // Auth middleware - copied from userRoutes.js for consistency
 const protect = async (req, res, next) => {
   let token;

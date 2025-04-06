@@ -10,6 +10,10 @@ const hireRequestRoutes = require('./Routes/HireRequest');
 const serviceRoutes = require('./Routes/Services');
 const productRoutes = require('./Routes/Products');
 const path = require('path');
+
+const serviceProvider = require('./Routes/ServiceProvideFinal');
+
+
 // Load environment variables
 dotenv.config();
 
@@ -65,10 +69,11 @@ const errorHandler = (err, req, res, next) => {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/users', userRoutes);
 app.use('/api/service-providers', serviceProviderRoutes);
+app.use('/api/service-providers', serviceProvider);
 app.use('/api/shops', shopRoutes);
 app.use('/api/users', hireRequestRoutes);
 app.use('/api/services', serviceRoutes);
-
+app.use
 
 // Root route
 app.get('/', (req, res) => {

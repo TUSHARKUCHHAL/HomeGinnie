@@ -1,5 +1,5 @@
-// serviceProviderSchema.js
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { Schema } = mongoose;
 
 const feedbackSchema = new Schema({
@@ -126,9 +126,21 @@ const serviceProviderSchema = new Schema({
     type: String,
     trim: true
   },
+  bio: {
+    type: String,
+    trim: true
+  },
   isActive: {
     type: Boolean,
     default: true
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
   },
   status: {
     type: String,
@@ -148,10 +160,26 @@ const serviceProviderSchema = new Schema({
       default: 0
     }
   },
+  totalReviews: {
+    type: Number,
+    default: 0
+  },
   feedback: [feedbackSchema],
   gennieCoins: {
     type: Number,
     default: 0
+  },
+  profileImage: {
+    type: String,
+    default: 'default-profile.jpg'
+  },
+  declinedRequests: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HireRequest'
+  }],
+  serviceRadius: {
+    type: Number,
+    default: 25  // in miles or km
   },
   createdAt: {
     type: Date,
@@ -165,18 +193,6 @@ const serviceProviderSchema = new Schema({
   timestamps: true
 });
 
-// Hash password before saving
-serviceProviderSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  try {
-    // You would typically use bcrypt here
-    // const salt = await bcrypt.genSalt(10);
-    // this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
 
 const ServiceProvider = mongoose.model('ServiceProvider', serviceProviderSchema);
 
