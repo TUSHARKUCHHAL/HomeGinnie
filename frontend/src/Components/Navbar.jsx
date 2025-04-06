@@ -100,7 +100,7 @@ const Navbar = () => {
       case 'service-provider':
         return '/ServiceProvider/Profile';
       case 'shop-owner':
-        return '/ServiceProvider/Profile';
+        return '/Shop/Profile';
       case 'admin':
         return '/profile'; // Fallback to regular profile for admin
       default:
