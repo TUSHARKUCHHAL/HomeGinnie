@@ -156,9 +156,9 @@ const animationStyles = `
 // Available service categories
 const serviceCategories = [
   "Plumbing", "Electrical", "Carpentry", "Painting", 
-  "Cleaning", "Landscaping", "Roofing", "HVAC", 
-  "Interior Design", "Flooring", "Pest Control", "Security",
-  "Solar Installation", "Smart Home", "Furniture Assembly"
+  "Cleaning", "Daiy Delivery", "Paper Dilevery", "Tiffin", 
+  "Cooking", "Grocery Delivery", "Pest Control", "Security",
+   "Water Can Delivery", "Appliances Repair","Laundary/Press"
 ];
 
 const ServiceProviderSignUp = () => {
@@ -425,7 +425,6 @@ const handleSubmit = async (e) => {
       );
       
       // Use AuthContext login function 
-      // Assuming you're using a context similar to the example
       login(
         response.data.token, 
         response.data.role || 'service-provider', 
@@ -441,11 +440,28 @@ const handleSubmit = async (e) => {
         error.response?.data?.message || error.message
       );
       
-      // Update the errors state with the error message
-      setErrors({
-        ...errors,
-        submitError: error.response?.data?.message || 'Registration failed. Please try again.'
-      });
+      // Check if the error is about email already existing
+      if (error.response?.data?.message?.toLowerCase().includes('email already exists') || 
+          error.response?.data?.message?.toLowerCase().includes('email already registered') ||
+          error.response?.status === 409) {
+        // Set specific error for the email field
+        setErrors({
+          ...errors,
+          email: 'This email is already registered. Please use a different email or sign in.',
+          submitError: 'Registration failed due to email already being registered.'
+        });
+        
+        // If we're not on step 1 (where the email field is), go back to step 1
+        if (currentStep !== 1) {
+          setCurrentStep(1);
+        }
+      } else {
+        // For other errors, show a general submit error
+        setErrors({
+          ...errors,
+          submitError: error.response?.data?.message || 'Registration failed. Please try again.'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -454,6 +470,24 @@ const handleSubmit = async (e) => {
 
   // Render form based on current step
 const renderFormStep = () => {
+  {/* General submission error message */}
+{errors.submitError && (
+  <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-200">
+    <div className="flex">
+      <div className="flex-shrink-0">
+        <FaExclamationCircle className="h-5 w-5 text-red-500" />
+      </div>
+      <div className="ml-3">
+        <h3 className="text-sm font-medium text-red-800">
+          Registration Error
+        </h3>
+        <div className="mt-1 text-sm text-red-700">
+          {errors.submitError}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
   switch(currentStep) {
     case 1:
       return (
