@@ -326,7 +326,7 @@ const ProductManagement = () => {
                   <h3 className="font-semibold text-lg text-slate-900 mb-1">{product.title}</h3>
                   <p className="text-slate-600 text-sm mb-3 line-clamp-2">{product.description}</p>
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-slate-900">${Number(product.price).toFixed(2)}</span>
+                    <span className="font-bold text-slate-900">₹{Number(product.price).toFixed(2)}</span>
                     <span className={`text-sm ${product.stock > 0 ? 'text-slate-600' : 'text-red-500'}`}>
                       {product.stock > 0 ? `Stock: ${product.stock}` : 'Out of stock'}
                     </span>
@@ -441,7 +441,7 @@ const ProductManagement = () => {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-slate-700 text-sm font-medium mb-1">
-                      Price ($)
+                      Price (₹)
                     </label>
                     <input
                       type="number"
